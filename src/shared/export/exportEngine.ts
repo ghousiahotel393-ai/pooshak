@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { saveFile, type SaveFileResult } from './saveFile';
 
 /**
  * exportEngine — THE single shared source of truth for ALL business report
@@ -52,15 +53,14 @@ export const DEFAULT_BRAND = { name: 'Zaynahs POS', logo: '/zaynahs-logo.svg' };
 
 /* ─── Low-level helpers (safe to reuse from backup tooling) ─── */
 
-export function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+/**
+ * Cross-platform blob save. Routes through the platform-aware `saveFile`
+ * (Capacitor Filesystem+Share on native, Web Share on standalone PWA, anchor
+ * download on desktop/Electron) instead of a browser-only anchor click that
+ * silently no-ops inside a native WebView / installed PWA.
+ */
+export function triggerDownload(blob: Blob, filename: string): Promise<SaveFileResult> {
+  return saveFile(blob, filename, blob.type || 'application/octet-stream');
 }
 
 function safeFilename(name: string) {
@@ -124,7 +124,7 @@ function excelValue(col: ExportColumn, row: Record<string, any>): string | numbe
 
 /* ─── CSV ─── */
 
-export function exportToCSV(config: ReportExportConfig) {
+export function exportToCSV(config: ReportExportConfig): Promise<SaveFileResult> {
   const csvEsc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
   const lines: string[] = [];
 
@@ -138,12 +138,12 @@ export function exportToCSV(config: ReportExportConfig) {
   }
 
   const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  triggerDownload(blob, config.filename || defaultFilename(config.title, 'csv'));
+  return saveFile(blob, config.filename || defaultFilename(config.title, 'csv'), 'text/csv');
 }
 
 /* ─── Excel (XLSX via SheetJS) ─── */
 
-export function exportToExcel(config: ReportExportConfig) {
+export function exportToExcel(config: ReportExportConfig): Promise<SaveFileResult> {
   const aoa: (string | number)[][] = [];
   if (config.title) aoa.push([config.title]);
   if (config.subtitle) aoa.push([config.subtitle]);
@@ -169,7 +169,15 @@ export function exportToExcel(config: ReportExportConfig) {
   });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Report');
-  XLSX.writeFile(wb, config.filename || defaultFilename(config.title, 'xlsx'));
+  // Build an array buffer (works in WebView/PWA) and route through the
+  // cross-platform saver instead of XLSX.writeFile's browser-only anchor click.
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer;
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  return saveFile(
+    blob,
+    config.filename || defaultFilename(config.title, 'xlsx'),
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  );
 }
 
 /* ─── PDF (jsPDF v4 + jspdf-autotable — proper column fit + alignment) ─── */
@@ -178,7 +186,7 @@ function isNumericColumn(col: ExportColumn): boolean {
   return col.format === 'number' || col.format === 'currency';
 }
 
-export async function exportToPDF(config: ReportExportConfig) {
+export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileResult> {
   const requestedPaper = config.paperSize || 'A4';
   const isThermal = (requestedPaper === '80mm' || requestedPaper === '58mm') && config.columns.length <= 4;
   const orientation = isThermal ? 'portrait' : (config.columns.length > 5 ? 'landscape' : 'portrait');
@@ -261,7 +269,10 @@ export async function exportToPDF(config: ReportExportConfig) {
     doc.text(`${brand.name} — ${config.title} — Page ${i} of ${pageCount}`, margin, doc.internal.pageSize.getHeight() - (isThermal ? 3 : 6));
   }
 
-  doc.save(config.filename || defaultFilename(config.title, 'pdf'));
+  // Output as a blob and route through the cross-platform saver instead of
+  // jsPDF's browser-only doc.save() (a no-op inside native WebView / PWA).
+  const blob = doc.output('blob') as Blob;
+  return saveFile(blob, config.filename || defaultFilename(config.title, 'pdf'), 'application/pdf');
 }
 
 export { printReport } from './printReport';

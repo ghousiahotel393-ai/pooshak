@@ -1,6 +1,6 @@
 import { useAppStore, useProductsStore, useSettingsStore } from '../stores';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Image as ImageIcon, MousePointer2, Trash2, Plus } from 'lucide-react';
+import { Image as ImageIcon, Trash2, Plus } from 'lucide-react';
 import { productsService } from '../lib/services';
 import { sonner } from '../lib/sonner';
 import { Modal } from './ui/Modal';
@@ -257,21 +257,19 @@ export function MediaLibrary({ isOpen, onClose, onSelect, standalone }: MediaLib
                     alt={asset.name}
                     imgClassName="w-full h-full object-cover"
                   />
-                  <div className="touch-reveal absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <MousePointer2 className="h-5 w-5 text-white" />
-                    {!asset.isSystem && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteImage(e, asset);
-                        }}
-                        className="absolute top-2 right-2 h-7 w-7 rounded bg-rose-600 text-white flex items-center justify-center hover:bg-rose-700 transition-colors"
-                        title="Delete Image"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  {!asset.isSystem && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteImage(e, asset);
+                      }}
+                      className="touch-reveal absolute top-1.5 right-1.5 h-7 w-7 rounded-md bg-rose-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-rose-700 transition-all shadow-sm"
+                      title="Delete Image"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                   {asset.isSystem && (
                     <div className="absolute top-1.5 left-1.5 bg-neutral-900/80 text-white text-[10px] font-mono px-1.5 py-0.5 rounded">
                       System

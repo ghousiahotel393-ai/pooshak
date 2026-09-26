@@ -116,11 +116,40 @@ export function ExportButton({
 
     setBusy(format);
     try {
-      if (format === 'csv') exportToCSV(config);
-      else if (format === 'xlsx') exportToExcel(config);
-      else if (format === 'pdf') await exportToPDF(config);
-      else printReport(config);
-      sonner.success(`${title} ${format === 'print' ? 'sent to print' : 'exported successfully'}`);
+      if (format === 'print') {
+        const res = await printReport(config);
+        if (res.method === 'failed') {
+          sonner.error(`Print failed — ${res.error || 'unable to open print view'}`);
+        } else if (res.method === 'pdf-fallback') {
+          sonner.success(`${title} saved as PDF (print unavailable on this device)`);
+        } else {
+          sonner.success(`${title} sent to print`);
+        }
+        return;
+      }
+
+      let res;
+      if (format === 'csv') res = await exportToCSV(config);
+      else if (format === 'xlsx') res = await exportToExcel(config);
+      else res = await exportToPDF(config);
+
+      switch (res.method) {
+        case 'failed':
+          sonner.error(`Export failed — ${res.error || 'could not save file'}`);
+          break;
+        case 'cancelled':
+          sonner.info('Export cancelled');
+          break;
+        case 'capacitor-write':
+          sonner.success(`${title} saved to Documents`);
+          break;
+        case 'capacitor-share':
+        case 'web-share':
+          sonner.success(`${title} ready to save/share`);
+          break;
+        default:
+          sonner.success(`${title} exported successfully`);
+      }
     } catch (error) {
       console.error(`[Export] ${format} failed:`, error);
       sonner.error(`Export failed — ${(error as Error)?.message || 'unknown error'}`);

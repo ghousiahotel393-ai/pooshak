@@ -1,7 +1,18 @@
 import type { ReportExportConfig } from './exportEngine';
 import { DEFAULT_BRAND, getColumnLabel } from './exportEngine';
 
-export function printReport(config: ReportExportConfig) {
+export type PrintMethod = 'window' | 'iframe' | 'pdf-fallback' | 'failed';
+export interface PrintResult {
+  method: PrintMethod;
+  error?: string;
+}
+
+function isCapacitorNative(): boolean {
+  const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || null;
+  return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+}
+
+export async function printReport(config: ReportExportConfig): Promise<PrintResult> {
   const brand = config.brand || DEFAULT_BRAND;
   const currencySymbol = config.currencySymbol || '';
   const paperSize = config.paperSize || 'A4';
@@ -46,8 +57,7 @@ export function printReport(config: ReportExportConfig) {
     return `<tr>${tds}</tr>`;
   }).join('');
 
-  const win = window.open('', '_blank', 'width=1024,height=768');
-  if (!win) return;
+  const win = isCapacitorNative() ? null : window.open('', '_blank', 'width=1024,height=768');
 
   const thermalCss = isThermal ? `
     body { width: ${cssWidth}; padding: 4px; font-size: ${paperSize === '58mm' ? '9px' : '11px'}; color: #000; }
@@ -72,7 +82,7 @@ export function printReport(config: ReportExportConfig) {
     .footer { margin-top: 18px; font-size: 8px; color: #9ca3af; }
   `;
 
-  win.document.write(`<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html>
 <head>
   <title>${escapeHtml(config.title)}</title>
@@ -112,8 +122,56 @@ export function printReport(config: ReportExportConfig) {
     <tbody>${body}</tbody>
   </table>
   <div class="footer">${escapeHtml(brand.name)} — ${escapeHtml(config.title)} — Generated ${escapeHtml(new Date().toLocaleString())}</div>
-  <script>window.onload = function(){ window.print(); }</script>
 </body>
-</html>`);
-  win.document.close();
+</html>`;
+
+  // 1. Preferred: a real popup window (desktop browsers / Electron).
+  if (win) {
+    win.document.write(html + '<script>window.onload=function(){window.print();}</scr' + 'ipt>');
+    win.document.close();
+    return { method: 'window' };
+  }
+
+  // 2. Popup blocked (standalone PWA) and NOT native: print via a hidden iframe.
+  if (!isCapacitorNative() && typeof document !== 'undefined') {
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+      const idoc = iframe.contentWindow?.document;
+      if (idoc) {
+        idoc.open();
+        idoc.write(html);
+        idoc.close();
+        const doPrint = () => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } catch { /* ignore */ }
+          setTimeout(() => { try { document.body.removeChild(iframe); } catch { /* ignore */ } }, 60000);
+        };
+        // Give images/styles a tick to lay out.
+        setTimeout(doPrint, 300);
+        return { method: 'iframe' };
+      }
+      document.body.removeChild(iframe);
+    } catch (e: any) {
+      console.error('[printReport] iframe print failed:', e);
+    }
+  }
+
+  // 3. Native WebView (or all else failed): produce a PDF the user can save/share.
+  try {
+    const { exportToPDF } = await import('./exportEngine');
+    const res = await exportToPDF(config);
+    if (res.method === 'failed') return { method: 'failed', error: res.error };
+    return { method: 'pdf-fallback' };
+  } catch (e: any) {
+    return { method: 'failed', error: e?.message || 'Print unavailable' };
+  }
 }

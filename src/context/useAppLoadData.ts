@@ -24,6 +24,7 @@ import {
   salesmenService,
   discountsService,
   bundlesService,
+  purchaseRecordsService,
 } from '../lib/services';
 import { useAuth } from './AuthContext';
 
@@ -94,6 +95,7 @@ export function useAppLoadData(
         discounts,
         bundles,
         salesTabs,
+        purchaseRecords,
       ] = await Promise.all([
         productsService.getAll().catch(() => []),
         customersService.getAll().catch(() => []),
@@ -108,6 +110,7 @@ export function useAppLoadData(
         discountsService.getAll().catch(() => []),
         bundlesService.getAll().catch(() => []),
         salesTabsService.getAll(user?.id).catch(() => []),
+        purchaseRecordsService.getAll().catch(() => []),
       ]);
 
       // 2. Hydrate Zustand stores instantly
@@ -139,6 +142,7 @@ export function useAppLoadData(
       useCustomersStore.getState().setCustomers(customers);
       useInventoryStore.getState().setSuppliers(suppliers);
       useInventoryStore.getState().setCategories(categories);
+      useInventoryStore.getState().setPurchaseRecords(purchaseRecords);
       useSettingsStore.getState().setPaymentModes(paymentModes);
       useSalesStore.getState().setSales(sales);
       useExpensesStore.getState().setExpenses(expenses);

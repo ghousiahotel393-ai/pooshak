@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ExternalLink, Loader2, ImageOff } from 'lucide-react';
+import { Search, ExternalLink, Loader2, ImageOff, Download } from 'lucide-react';
 import { sonner } from '../lib/sonner';
 import { cn } from '../lib/utils';
 import { searchPhotos, PexelsError, type PexelsPhoto } from '../lib/services/pexelsService';
@@ -111,14 +111,16 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
                 style={{ backgroundColor: p.avg_color || '#eee' }}
               >
                 <img src={p.src.medium || p.src.tiny} alt={p.alt} loading="lazy" className="w-full h-full object-cover pointer-events-none" />
+                {/* Corner download-arrow affordance (visual only; the whole card is the tap target). */}
                 <div
                   className={cn(
-                    'touch-reveal absolute inset-0 bg-black/45 flex items-center justify-center text-white text-[12px] font-medium transition-opacity pointer-events-none',
+                    'touch-reveal absolute top-1.5 right-1.5 h-7 w-7 rounded-md bg-black/60 text-white flex items-center justify-center transition-opacity pointer-events-none',
                     busy ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                   )}
                 >
-                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Use this image'}
+                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                 </div>
+                {busy && <div className="absolute inset-0 bg-black/30 pointer-events-none" />}
               </div>
               <a href={p.url} target="_blank" rel="noreferrer" className="text-[10px] text-neutral-400 hover:text-primary truncate" title={`Photo by ${p.photographer} on Pexels`}>
                 Photo by <span className="underline">{p.photographer}</span>

@@ -1,7 +1,7 @@
 {
   "name": "zaynahs-pos",
   "private": true,
-  "version": "1.0.10",
+  "version": "1.0.11",
   "type": "module",
   "description": "Zaynahs POS — Supabase-only, cloud-direct, server-authoritative POS with a local SQLite cache + sync queue, built with React, TypeScript, SQLite, Electron, and Capacitor",
   "keywords": [
@@ -39,7 +39,9 @@
     "@capacitor-community/sqlite": "^7.0.3",
     "@capacitor/android": "^7.6.9",
     "@capacitor/core": "^7.6.9",
+    "@capacitor/filesystem": "7.1.8",
     "@capacitor/ios": "^7.6.9",
+    "@capacitor/share": "7.0.4",
     "@electron/remote": "^2.1.2",
     "@noble/hashes": "^2.4.0",
     "@supabase/supabase-js": "^2.103.3",
