@@ -12,10 +12,6 @@
   button:not([data-no-tap-expand]),
   [role="button"]:not([data-no-tap-expand]) {
     @media (hover: none) and (pointer: coarse) {
-      position: relative;
-    }
-
-    @media (hover: none) and (pointer: coarse) {
       &::after {
         content: '';
         position: absolute;
@@ -24,6 +20,19 @@
         height: max(100%, 44px);
         transform: translate(-50%, -50%);
       }
+    }
+  }
+
+  /* Give ONLY statically-positioned buttons `position: relative` so the ::after tap
+     zone anchors to them. Buttons that are already positioned (absolute/fixed/sticky) —
+     e.g. an eye/show-password toggle sitting inside an input, or a corner action icon —
+     MUST keep their own positioning. Otherwise this rule (specificity 0,1,1) overrides
+     Tailwind's `.absolute` (0,1,0) on touch devices and drops the icon out of the field
+     into normal document flow (the "eye icon floats below/left of the box on mobile" bug). */
+  button:not([data-no-tap-expand]):not(.absolute):not(.\!absolute):not([class*="absolute"]):not(.fixed):not(.\!fixed):not([class*="fixed"]):not(.sticky):not(.\!sticky):not([class*="sticky"]),
+  [role="button"]:not([data-no-tap-expand]):not(.absolute):not(.\!absolute):not([class*="absolute"]):not(.fixed):not(.\!fixed):not([class*="fixed"]):not(.sticky):not(.\!sticky):not([class*="sticky"]) {
+    @media (hover: none) and (pointer: coarse) {
+      position: relative;
     }
   }
 

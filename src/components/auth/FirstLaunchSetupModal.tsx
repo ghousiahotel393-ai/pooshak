@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Copy, Check, ArrowRight, Store, KeyRound, QrCode, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Copy, Check, ArrowRight, Store, KeyRound, QrCode } from 'lucide-react';
 import { Button, Modal } from '../../shared/ui';
 import { bootstrapAdmin, SetupConfig } from '../../lib/auth/localAuthService';
 import { JoinStorePanel } from './JoinStorePanel';
-import { verifyLicenseKey } from '../../lib/licensing/licenseVerifier';
-import { execute, TABLES } from '../../lib/db';
 import { sonner } from '../../lib/sonner';
 import { User } from '../../types';
 import { useCapsLock } from '../../hooks/useCapsLock';
@@ -25,8 +23,6 @@ export function FirstLaunchSetupModal({ open, onComplete }: Props) {
   const [recoveryCode, setRecoveryCode] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [confirmPin, setConfirmPin] = useState('');
-  const [licenseKey, setLicenseKey] = useState('');
-  const [licenseValid, setLicenseValid] = useState<boolean | null>(null);
 
   const [form, setForm] = useState<SetupConfig>({
     shopName: '',
@@ -36,25 +32,8 @@ export function FirstLaunchSetupModal({ open, onComplete }: Props) {
     adminPin: '',
   });
 
-  const handleLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.toUpperCase();
-    setLicenseKey(val);
-    if (val.length >= 19) {
-      const res = verifyLicenseKey(val);
-      setLicenseValid(res.valid);
-    } else {
-      setLicenseValid(null);
-    }
-  };
-
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const licenseCheck = verifyLicenseKey(licenseKey);
-    if (!licenseCheck.valid) {
-      sonner.error(licenseCheck.error || 'A valid ZPOS License Key is required to create a new store.');
-      return;
-    }
 
     if (!form.shopName.trim()) {
       sonner.warning('Please enter your store name.');
@@ -76,12 +55,6 @@ export function FirstLaunchSetupModal({ open, onComplete }: Props) {
     setLoading(true);
     try {
       const res = await bootstrapAdmin(form);
-      // Save license key into settings table
-      await execute(
-        `INSERT OR REPLACE INTO ${TABLES.SETTINGS} (key, value, updated_at) VALUES ('license_key', ?, ?);`,
-        [licenseKey.trim().toUpperCase(), Date.now()]
-      );
-
       setSavedUser(res.user);
       setRecoveryCode(res.recoveryCode);
       setStep(2);
@@ -161,14 +134,6 @@ export function FirstLaunchSetupModal({ open, onComplete }: Props) {
               />
             ) : (
               <form onSubmit={handleStep1Submit} className="space-y-3.5">
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-700 dark:text-neutral-300 mb-1">Software License Key *</label>
-                  <div className="relative">
-                    <input type="text" required placeholder="ZPOS-XXXX-XXXX-XXXX-XXXX" value={licenseKey} onChange={handleLicenseChange} className="w-full h-8 px-3 font-mono text-[12.5px] bg-neutral-50 dark:bg-neutral-900 border border-neutral-300 dark:border-white/[0.12] rounded text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-primary uppercase" />
-                    {licenseValid === true && <CheckCircle2 className="w-4 h-4 text-emerald-500 absolute right-2.5 top-2" />}
-                  </div>
-                  <p className="text-[11px] text-neutral-500 mt-1">Enter genuine license key provided by software vendor.</p>
-                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                   <div>
                     <label className="block text-[12px] font-medium text-neutral-700 dark:text-neutral-300 mb-1">Store Name *</label>
@@ -210,7 +175,7 @@ export function FirstLaunchSetupModal({ open, onComplete }: Props) {
                 </div>
                 <div className="flex justify-end pt-3 border-t border-neutral-200 dark:border-white/[0.08]">
                   <Button type="submit" variant="primary" size="sm" loading={loading} icon={<ArrowRight className="w-4 h-4" />} iconPosition="right">
-                    Initialize Store & Key
+                    Initialize Store
                   </Button>
                 </div>
               </form>

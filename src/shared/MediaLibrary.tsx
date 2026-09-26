@@ -264,8 +264,9 @@ export function MediaLibrary({ isOpen, onClose, onSelect, standalone }: MediaLib
                         e.stopPropagation();
                         handleDeleteImage(e, asset);
                       }}
-                      className="touch-reveal absolute top-1.5 right-1.5 h-7 w-7 rounded-md bg-rose-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-rose-700 transition-all shadow-sm"
+                      className="absolute top-1.5 right-1.5 z-10 h-7 w-7 rounded-md bg-rose-600/90 text-white flex items-center justify-center hover:bg-rose-700 active:scale-95 transition-all shadow-sm ring-1 ring-white/25"
                       title="Delete Image"
+                      aria-label="Delete image"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>

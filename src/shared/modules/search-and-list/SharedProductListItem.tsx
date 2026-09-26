@@ -1,5 +1,6 @@
 import { Package, Plus, CheckCircle2, GripVertical } from 'lucide-react';
 import { cn } from '../../../lib/utils';
+import { ProductThumb } from '../../ui/ProductThumb';
 import { SharedProductListItemProps } from './types';
 
 /**
@@ -56,16 +57,15 @@ export function SharedProductListItem({
           'bg-neutral-100 dark:bg-neutral-900 rounded-md flex items-center justify-center border border-neutral-200 dark:border-white/[0.08] shrink-0 overflow-hidden',
           compact ? 'w-8 h-8' : 'w-10 h-10 sm:w-12 sm:h-12'
         )}>
-          {item.thumbnailUrl ? (
-            <img
-              src={item.thumbnailUrl}
-              alt={item.title}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <Package className={cn('text-neutral-400', compact ? 'h-4 w-4' : 'h-5 w-5')} />
-          )}
+          {/* Route through the shared ProductThumb so content-addressed image hashes
+              resolve (memory → IndexedDB → Supabase bucket → Pexels) exactly like every
+              other product thumbnail. A raw <img src={hash}> here caused the broken "?"
+              across Smart Match, Discount Matching Products, bundle items, batch stock-in. */}
+          <ProductThumb
+            image={item.thumbnailUrl}
+            alt={item.title}
+            fallback={<Package className={cn('text-neutral-400', compact ? 'h-4 w-4' : 'h-5 w-5')} />}
+          />
         </div>
 
         {/* Content */}

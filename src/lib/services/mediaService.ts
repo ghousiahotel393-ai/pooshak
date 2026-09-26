@@ -39,7 +39,22 @@ export async function listMedia(): Promise<MediaAsset[]> {
 }
 
 async function urlToCompressedBytes(url: string): Promise<{ bytes: Uint8Array; mime: string }> {
-  const res = await fetch(url);
+  // Bounded download: a Pexels image on a slow/flaky mobile connection would otherwise
+  // hang `fetch` forever (infinite spinner, no error, no way out). Abort after a timeout
+  // so the caller gets a clear, retryable error instead of a stuck UI.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+  let res: Response;
+  try {
+    res = await fetch(url, { signal: controller.signal });
+  } catch (e: any) {
+    if (e?.name === 'AbortError') {
+      throw new Error('Download timed out — check your connection and tap to retry.');
+    }
+    throw new Error('Could not download image — check your connection and tap to retry.');
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!res.ok) throw new Error(`Failed to download image (${res.status})`);
   const blob = await res.blob();
   const file = new File([blob], 'pexels.jpg', { type: blob.type || 'image/jpeg' });
@@ -57,7 +72,10 @@ export async function saveFromPexels(photo: PexelsPhoto): Promise<MediaAsset> {
   if (existing) return mapRow(existing);
 
   // Upload FIRST (compress → hash → bucket), then link inside the bundle (§1.5.5).
-  const srcUrl = photo.src.large2x || photo.src.large || photo.src.original;
+  // Use `large` (≈940px) — plenty for our 800×800 compression target and far smaller/faster
+  // to download than `large2x`/`original`, which is what made the download hang on mobile.
+  const srcUrl = photo.src.large || photo.src.large2x || photo.src.medium || photo.src.original;
+  if (!srcUrl) throw new Error('This photo has no usable image URL.');
   const { bytes, mime } = await urlToCompressedBytes(srcUrl);
   const { hash } = await saveImage(bytes, mime);
 

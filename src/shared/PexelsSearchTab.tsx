@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ExternalLink, Loader2, ImageOff, Download } from 'lucide-react';
+import { Search, ExternalLink, Loader2, ImageOff, Download, RotateCw } from 'lucide-react';
 import { sonner } from '../lib/sonner';
 import { cn } from '../lib/utils';
 import { searchPhotos, PexelsError, type PexelsPhoto } from '../lib/services/pexelsService';
@@ -20,6 +20,7 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [usingId, setUsingId] = React.useState<number | null>(null);
+  const [failedId, setFailedId] = React.useState<number | null>(null);
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const run = React.useCallback(async (q: string, p: number, append: boolean) => {
@@ -48,12 +49,14 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
 
   const use = async (photo: PexelsPhoto) => {
     setUsingId(photo.id);
+    setFailedId(null);
     try {
       const asset = await saveFromPexels(photo);
       const value = asset.imageHash || asset.srcUrls.large || asset.srcUrls.large2x || asset.srcUrls.medium;
       if (value) { onPick(value); sonner.success('Image added to your library.'); }
-      else sonner.error('Could not save this image.');
+      else { setFailedId(photo.id); sonner.error('Could not save this image.'); }
     } catch (e: any) {
+      setFailedId(photo.id);
       sonner.error(e?.message || 'Failed to use image');
     } finally {
       setUsingId(null);
@@ -89,6 +92,7 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {photos.map((p) => {
             const busy = usingId === p.id;
+            const failed = failedId === p.id && !busy;
             return (
             <div key={p.id} className="group flex flex-col gap-1">
               {/*
@@ -102,7 +106,7 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
                 role="button"
                 tabIndex={0}
                 aria-disabled={busy}
-                aria-label={`Use image: ${p.alt || 'Pexels photo'}`}
+                aria-label={failed ? `Retry download: ${p.alt || 'Pexels photo'}` : `Use image: ${p.alt || 'Pexels photo'}`}
                 onClick={() => { if (!busy) void use(p); }}
                 onKeyDown={(e) => {
                   if ((e.key === 'Enter' || e.key === ' ') && !busy) { e.preventDefault(); void use(p); }
@@ -111,16 +115,26 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
                 style={{ backgroundColor: p.avg_color || '#eee' }}
               >
                 <img src={p.src.medium || p.src.tiny} alt={p.alt} loading="lazy" className="w-full h-full object-cover pointer-events-none" />
-                {/* Corner download-arrow affordance (visual only; the whole card is the tap target). */}
+                {/* Always-visible corner affordance: download / spinner / retry (visual only;
+                    the whole card is the tap target). */}
                 <div
                   className={cn(
-                    'touch-reveal absolute top-1.5 right-1.5 h-7 w-7 rounded-md bg-black/60 text-white flex items-center justify-center transition-opacity pointer-events-none',
-                    busy ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                    'absolute top-1.5 right-1.5 z-10 h-7 w-7 rounded-md flex items-center justify-center pointer-events-none shadow-sm ring-1 ring-white/20',
+                    failed ? 'bg-rose-600 text-white' : 'bg-black/60 text-white'
                   )}
                 >
-                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  {busy
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : failed
+                      ? <RotateCw className="w-3.5 h-3.5" />
+                      : <Download className="w-3.5 h-3.5" />}
                 </div>
                 {busy && <div className="absolute inset-0 bg-black/30 pointer-events-none" />}
+                {failed && (
+                  <div className="absolute inset-x-0 bottom-0 bg-rose-600/90 text-white text-[10px] font-medium text-center py-0.5 pointer-events-none">
+                    Tap to retry
+                  </div>
+                )}
               </div>
               <a href={p.url} target="_blank" rel="noreferrer" className="text-[10px] text-neutral-400 hover:text-primary truncate" title={`Photo by ${p.photographer} on Pexels`}>
                 Photo by <span className="underline">{p.photographer}</span>

@@ -51,7 +51,11 @@ export function BatchStockInSystem({ onClose, initialProduct }: BatchStockInSyst
         (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (p.barcode && p.barcode.toLowerCase().includes(searchQuery.toLowerCase()))
       ))
-      .slice(0, 5);
+      .slice(0, 5)
+      // Shape each result for the shared list (title/sku/stock/thumbnail) while keeping
+      // all Product fields intact so addToBatch still gets cost/price/supplier. thumbnailUrl
+      // carries the image hash → ProductThumb resolves it (no more broken "?" / box icon).
+      .map((p: Product) => ({ ...p, title: p.name, sku: p.sku, stock: p.stock, thumbnailUrl: p.image }));
   }, [appProducts, searchQuery]);
 
   const addToBatch = (product: Product) => {
