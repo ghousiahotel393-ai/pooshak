@@ -14,6 +14,8 @@ import { SearchableSelect } from '../../shared/ui/SearchableSelect';
 import { formatCurrency } from '../../lib/currencies';
 import { SharedSearchBar } from '../../shared/modules/search-and-list';
 import { Button, DateRangePicker, Pagination } from '../../shared/ui';
+import { ExportButton } from '../../shared/export';
+import { getCurrencySymbol } from '../../lib/currencies';
 import { ExpenseTable } from './ExpenseTable';
 import { useExpenseManagerActions } from './useExpenseManagerActions';
 
@@ -75,6 +77,23 @@ export function ExpenseManager() {
     computeTopCategory(filteredExpenses),
     [filteredExpenses]);
 
+  const exportColumns = [
+    { key: 'date', label: 'Date', format: 'date' as const },
+    { key: 'description', label: 'Description' },
+    { key: 'category', label: 'Category' },
+    { key: 'paymentMethod', label: 'Payment' },
+    { key: 'addedBy', label: 'Added By' },
+    { key: 'amount', label: 'Amount', format: 'currency' as const },
+  ];
+  const exportRows = filteredExpenses.map(e => ({
+    date: e.date,
+    description: e.description || '',
+    category: e.category || '',
+    paymentMethod: e.paymentMethod || '',
+    addedBy: e.addedBy || '',
+    amount: e.amount,
+  }));
+
   return (
     <div className="main-content-scroll p-1 sm:p-4 lg:p-6 bg-gray-50/50 dark:bg-app space-y-3 lg:space-y-4 max-w-[1400px] mx-auto">
       {/* Layer 1: Header */}
@@ -105,18 +124,28 @@ export function ExpenseManager() {
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => {
-            setEditingExpense(null);
-            setIsModalOpen(true);
-          }}
-          icon={<Plus className="h-3.5 w-3.5" />}
-          className="shrink-0 h-8 !px-2.5 sm:!px-3 !text-[11px] sm:!text-[12px]"
-        >
-          <span>{"Add Expense"}</span>
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <ExportButton
+            data={exportRows}
+            columns={exportColumns}
+            title={'Expenses Report'}
+            filtersSummary={`Range: ${dateRange}${selectedCategory !== 'all' ? ` • Category: ${selectedCategory}` : ''}`}
+            currencySymbol={getCurrencySymbol(appSettings.currency)}
+            className="!h-8 !px-2.5 !text-[11px]"
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              setEditingExpense(null);
+              setIsModalOpen(true);
+            }}
+            icon={<Plus className="h-3.5 w-3.5" />}
+            className="shrink-0 h-8 !px-2.5 sm:!px-3 !text-[11px] sm:!text-[12px]"
+          >
+            <span>{"Add Expense"}</span>
+          </Button>
+        </div>
       </div>
 
       {/* Layer 2: Filter Toolbar */}

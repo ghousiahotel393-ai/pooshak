@@ -34,7 +34,7 @@ export function CheckoutPinVerifyModal({
 
   const handleVerify = useCallback(async (currentPin: string) => {
     if (!currentPin || currentPin.length < 4) {
-      setError('Enter at least 4 digits');
+      setError('Enter at least 4 characters');
       return;
     }
 
@@ -58,7 +58,7 @@ export function CheckoutPinVerifyModal({
   }, [userId, onAuthorized]);
 
   const handleDigit = useCallback((d: string) => {
-    if (pin.length >= 12 || isVerifying) return;
+    if (pin.length >= 64 || isVerifying) return;
     setError(null);
     setPin(prev => prev + d);
   }, [pin.length, isVerifying]);
@@ -79,13 +79,7 @@ export function CheckoutPinVerifyModal({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key >= '0' && e.key <= '9') {
-        e.preventDefault();
-        handleDigit(e.key);
-      } else if (e.key === 'Backspace') {
-        e.preventDefault();
-        handleBackspace();
-      } else if (e.key === 'Enter') {
+      if (e.key === 'Enter') {
         e.preventDefault();
         if (pin.length >= 4) {
           handleVerify(pin);
@@ -98,7 +92,7 @@ export function CheckoutPinVerifyModal({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, pin, handleDigit, handleBackspace, handleVerify, onCancel]);
+  }, [isOpen, pin, handleVerify, onCancel]);
 
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -142,13 +136,31 @@ export function CheckoutPinVerifyModal({
         </div>
 
         <p className="text-xs text-neutral-600 dark:text-neutral-400 text-center mb-1 max-w-[280px]">
-          Enter your security PIN to finalize and save this sale.
+          Enter your security password to finalize and save this sale.
         </p>
+
+        {/* Password field — accepts full alphanumeric staff credentials (verified against
+            the real synced staff_users.password_hash). The keypad is a numeric shortcut. */}
+        <input
+          type="password"
+          inputMode="text"
+          autoComplete="current-password"
+          value={pin}
+          onChange={(e) => {
+            if (isVerifying) return;
+            setError(null);
+            setPin(e.target.value.slice(0, 64));
+          }}
+          disabled={isVerifying}
+          placeholder="Password or PIN"
+          aria-label="Password or PIN"
+          className="w-full max-w-[240px] h-9 px-3 mt-2 mb-1 text-center text-[14px] tracking-widest font-mono rounded bg-neutral-100 dark:bg-white/[0.06] border border-neutral-200 dark:border-white/[0.08] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+        />
 
         <div className="flex items-center gap-2 mb-3">
           <CapsLockIndicator variant="inline" />
           <span className="text-[11px] font-mono text-neutral-500">
-            {pin.length} / 12 digits (min 4)
+            {pin.length} / 64 (min 4)
           </span>
         </div>
 

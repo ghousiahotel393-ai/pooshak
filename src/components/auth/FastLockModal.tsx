@@ -50,7 +50,7 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
 
   const handleDigit = (digit: string) => {
     if (lockoutSecs > 0 || isSubmitting) return;
-    if (pin.length < 12) {
+    if (pin.length < 64) {
       setPin((prev) => prev + digit);
     }
   };
@@ -72,7 +72,7 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
         return;
       }
       if (!pinToSubmit || pinToSubmit.length < 4) {
-        sonner.warning('PIN must be at least 4 digits.');
+        sonner.warning('Password must be at least 4 characters.');
         return;
       }
 
@@ -92,17 +92,15 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
     [lockoutSecs, pin, selectedUser, signInWithPin, onUnlock]
   );
 
-  // Auto-submit when PIN hits 6 digits or listen to Enter/Escape keys
+  // Enter submits, Escape clears. Alphanumeric typing is captured by the password
+  // <input> below (staff credentials can contain letters), the on-screen keypad handles
+  // numeric-only entry — both write the same `pin` state so they stay in sync.
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (lockoutSecs > 0 || isSubmitting) return;
-      if (e.key >= '0' && e.key <= '9') {
-        if (pin.length < 12) setPin((prev) => prev + e.key);
-      } else if (e.key === 'Backspace') {
-        setPin((prev) => prev.slice(0, -1));
-      } else if (e.key === 'Escape') {
+      if (e.key === 'Escape') {
         setPin('');
       } else if (e.key === 'Enter') {
         if (pin.length >= 4) {
@@ -129,7 +127,7 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
             <h2 className="text-[14px] font-semibold text-gray-900 dark:text-white tracking-[-0.01em]">
               Terminal Locked
             </h2>
-            <p className="text-[11px] text-gray-500 font-mono">Enter PIN to resume session</p>
+            <p className="text-[11px] text-gray-500 font-mono">Enter password to resume session</p>
           </div>
         </div>
 
@@ -168,6 +166,22 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
 
         {/* PIN Indicators & Caps Lock Warning */}
         <div className="flex flex-col items-center justify-center my-3 gap-1.5 w-full">
+          {/* Password field — accepts full alphanumeric staff credentials (verified against
+              the real synced staff_users.password_hash). The keypad below is a numeric shortcut. */}
+          <input
+            type="password"
+            inputMode="text"
+            autoComplete="current-password"
+            value={pin}
+            onChange={(e) => {
+              if (lockoutSecs > 0 || isSubmitting) return;
+              setPin(e.target.value.slice(0, 64));
+            }}
+            disabled={lockoutSecs > 0 || isSubmitting}
+            placeholder="Password or PIN"
+            aria-label="Password or PIN"
+            className="w-full h-9 px-3 mb-1 text-center text-[14px] tracking-widest font-mono rounded bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white focus:outline-none focus:border-primary"
+          />
           <div className="flex justify-center items-center gap-2 flex-wrap max-w-[280px]">
             {Array.from({ length: Math.max(pin.length, 6) }).map((_, idx) => {
               const hasDigit = idx < pin.length;

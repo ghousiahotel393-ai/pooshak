@@ -64,10 +64,7 @@ export function DiscountConditionsSection({
                 >
                   <option value="min_amount" className="dark:bg-surface">{"Threshold Amount"}</option>
                   <option value="specific_products" className="dark:bg-surface">{"Product Whitelist"}</option>
-                  <option value="payment_method" className="dark:bg-surface">{"Payment Gateway"}</option>
                   <option value="customer_tier" className="dark:bg-surface">{"Membership Tier"}</option>
-                  <option value="card_type" className="dark:bg-surface">{"Network (Visa/MC)"}</option>
-                  <option value="bank_name" className="dark:bg-surface">{"Issuing Institution"}</option>
                 </Select>
               </div>
 
@@ -101,41 +98,17 @@ export function DiscountConditionsSection({
                       />
                     </div>
                   </div>
-                ) : condition.type === 'payment_method' || condition.type === 'customer_tier' || condition.type === 'card_type' || condition.type === 'bank_name' ? (
+                ) : condition.type === 'customer_tier' ? (
                   <Select
                     value={condition.value as string}
                     onChange={(e) => updateCondition(index, 'value', e.target.value)}
                     className="!bg-white dark:!bg-surface !border-neutral-200 dark:!border-white/[0.08] !rounded !px-3 !text-[13px] !text-neutral-900 dark:!text-white"
                   >
                     <option value="" className="dark:bg-surface">Select...</option>
-                    {condition.type === 'payment_method' && (
-                      <>
-                        <option value="cash" className="dark:bg-surface">{"Cash Settlement"}</option>
-                        <option value="card" className="dark:bg-surface">{"Card"}</option>
-                        <option value="online" className="dark:bg-surface">{"Online Wallet"}</option>
-                      </>
-                    )}
-                    {condition.type === 'customer_tier' && (
-                      <>
-                        <option value="Standard" className="dark:bg-surface">{'Standard Tier'}</option>
-                        <option value="Premium" className="dark:bg-surface">{'Premium Tier'}</option>
-                        <option value="VIP" className="dark:bg-surface">{'VIP Elite'}</option>
-                        <option value="Wholesale" className="dark:bg-surface">{'Trade Partner'}</option>
-                      </>
-                    )}
-                    {condition.type === 'card_type' && (
-                      <>
-                        <option value="visa" className="dark:bg-surface">{'Visa Network'}</option>
-                        <option value="mastercard" className="dark:bg-surface">{'Mastercard Network'}</option>
-                        <option value="amex" className="dark:bg-surface">{'Amex Enterprise'}</option>
-                        <option value="discover" className="dark:bg-surface">{'Discover Net'}</option>
-                      </>
-                    )}
-                    {condition.type === 'bank_name' && (
-                      ['Bank of Ceylon', 'People\'s Bank', 'Commercial Bank', 'HNB', 'Sampath Bank', 'NTB', 'DFCC', 'Seylan Bank', 'NDB'].map(bank => (
-                        <option key={bank} value={bank} className="dark:bg-surface">{bank}</option>
-                      ))
-                    )}
+                    <option value="Standard" className="dark:bg-surface">{'Standard Tier'}</option>
+                    <option value="Premium" className="dark:bg-surface">{'Premium Tier'}</option>
+                    <option value="VIP" className="dark:bg-surface">{'VIP Elite'}</option>
+                    <option value="Wholesale" className="dark:bg-surface">{'Trade Partner'}</option>
                   </Select>
                 ) : (
                   <input

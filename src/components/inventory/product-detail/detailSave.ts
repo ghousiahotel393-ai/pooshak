@@ -2,6 +2,7 @@ import { productsService, generateId, productToppingsService, applyVariantStockM
 import { stockHistoryService } from '../../../lib/services/stockHistoryService';
 import { sonner } from '../../../lib/sonner';
 import { useProductsStore } from '../../../stores';
+import { resolveActorName } from '../../../lib/auth/actor';
 import { DetailCtx } from './detailContext';
 
 export async function performSave(ctx: DetailCtx) {
@@ -57,7 +58,7 @@ export async function performSave(ctx: DetailCtx) {
         referenceId: 'INITIAL_STOCK',
         note: 'Inventory Tracking Enabled (Initial Balance)',
         balanceAfter: updatedProduct.stock,
-        cashierName: ctx.profile?.email || 'System',
+        cashierName: resolveActorName(ctx.profile),
         createdAt: now
       };
       await stockHistoryService.create(histEntry as any);
@@ -75,7 +76,7 @@ export async function performSave(ctx: DetailCtx) {
           referenceId: 'MANUAL_EDIT',
           note: `Direct Stock Edit via Form (${oldStock} → ${newStockVal})`,
           balanceAfter: newStockVal,
-          cashierName: ctx.profile?.email || 'System',
+          cashierName: resolveActorName(ctx.profile),
           createdAt: now
         };
         await stockHistoryService.create(adjHistEntry as any);
@@ -96,7 +97,7 @@ export async function performSave(ctx: DetailCtx) {
             type: 'adjustment',
             referenceId: 'MANUAL_EDIT',
             note: `Direct Variant Stock Edit (${oldVariantStock} → ${newVariantStock})`,
-            cashierName: ctx.profile?.email || 'System',
+            cashierName: resolveActorName(ctx.profile),
             createdAt: now
           });
         }

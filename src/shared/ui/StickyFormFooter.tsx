@@ -29,8 +29,8 @@ export function StickyFormFooter({
   if (!show) return null;
 
   return (
-    <div className="relative mt-6 pt-4 border-t border-neutral-200 dark:border-white/[0.08] lg:mt-0 lg:pt-0 lg:fixed lg:bottom-0 lg:left-0 lg:right-0 bg-transparent lg:bg-white lg:dark:bg-surface lg:py-2.5 z-30 shadow-none">
-      <div className="max-w-7xl mx-auto px-1 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+    <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-surface py-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom)+var(--bottom-nav-clearance))] md:pb-2.5 shadow-[0_-1px_0_0_rgba(0,0,0,0.04)]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
         {/* Left Side: Status / Unsaved Warning */}
         <div className="flex items-center gap-2">
           {unsaved && (

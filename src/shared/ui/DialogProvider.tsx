@@ -104,8 +104,8 @@ export const DialogProvider: React.FC = () => {
       />
 
       {/* Dialog Card */}
-      <div className={`relative w-full max-w-[380px] max-h-[85dvh] sm:max-h-[90dvh] bg-white dark:bg-surface rounded-lg shadow-2xl border border-neutral-200 dark:border-white/[0.08] overflow-hidden transform transition-all duration-150 ${isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-2'}`}>
-        <div className="p-5 flex flex-col items-center text-center overflow-y-auto overscroll-contain">
+      <div className={`relative w-full max-w-[380px] max-h-[85dvh] sm:max-h-[90dvh] flex flex-col bg-white dark:bg-surface rounded-lg shadow-2xl border border-neutral-200 dark:border-white/[0.08] overflow-hidden transform transition-all duration-150 ${isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-2'}`}>
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 flex flex-col items-center text-center">
           {/* Icon Header */}
           <div className={`w-10 h-10 rounded-md flex items-center justify-center mb-3.5 ${dialog.type === 'delete' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
               dialog.type === 'loading' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
@@ -141,29 +141,29 @@ export const DialogProvider: React.FC = () => {
               />
             </div>
           )}
-
-          {dialog.type !== 'loading' && (
-            <div className="flex gap-2 w-full pt-1">
-              {dialog.cancelText && (
-                <button
-                  onClick={handleCancel}
-                  className="flex-1 h-8 px-3 bg-white dark:bg-surface hover:bg-neutral-50 dark:hover:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300 rounded-md text-[13px] font-medium transition-colors"
-                >
-                  {dialog.cancelText}
-                </button>
-              )}
-              <button
-                onClick={handleConfirm}
-                className={`flex-1 h-8 px-3 text-white rounded-md text-[13px] font-medium transition-colors ${dialog.type === 'delete'
-                    ? 'bg-rose-600 hover:bg-rose-700'
-                    : 'bg-emerald-600 hover:bg-emerald-700'
-                  }`}
-              >
-                {dialog.confirmText || 'Confirm'}
-              </button>
-            </div>
-          )}
         </div>
+
+        {dialog.type !== 'loading' && (
+          <div className="flex-shrink-0 flex gap-2 w-full px-5 py-4 border-t border-neutral-200 dark:border-white/[0.08]">
+            {dialog.cancelText && (
+              <button
+                onClick={handleCancel}
+                className="flex-1 h-8 px-3 bg-white dark:bg-surface hover:bg-neutral-50 dark:hover:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08] text-neutral-700 dark:text-neutral-300 rounded-md text-[13px] font-medium transition-colors"
+              >
+                {dialog.cancelText}
+              </button>
+            )}
+            <button
+              onClick={handleConfirm}
+              className={`flex-1 h-8 px-3 text-white rounded-md text-[13px] font-medium transition-colors ${dialog.type === 'delete'
+                  ? 'bg-rose-600 hover:bg-rose-700'
+                  : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
+            >
+              {dialog.confirmText || 'Confirm'}
+            </button>
+          </div>
+        )}
       </div>
     </div>,
     document.body

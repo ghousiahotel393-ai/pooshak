@@ -135,6 +135,34 @@ export const REAL_ICONS = {
 
 export type RealIconName = keyof typeof REAL_ICONS;
 
+/**
+ * Warm the browser image cache + decode every bundled icon ONCE at module load, so a
+ * freshly-mounted <img> on any tab/page switch paints instantly with zero pop-in flicker
+ * (Issue: icons flickered from a placeholder to the final bitmap on tab swap). Combined with
+ * `decoding="sync"` on the <img>, a cached+decoded icon renders on the very first paint.
+ * Guarded to the browser and run once; failures are swallowed (fallback handled per-icon).
+ */
+const decodedIconSrcs = new Set<string>();
+if (typeof window !== 'undefined' && typeof Image !== 'undefined') {
+  const uniqueSrcs = Array.from(new Set(Object.values(REAL_ICONS)));
+  uniqueSrcs.forEach((src) => {
+    try {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = src as string;
+      const markDecoded = () => decodedIconSrcs.add(src as string);
+      if (typeof img.decode === 'function') {
+        img.decode().then(markDecoded).catch(markDecoded);
+      } else {
+        img.onload = markDecoded;
+      }
+    } catch {
+      /* preloading is best-effort; per-icon onError fallback still applies */
+    }
+  });
+}
+
+
 export const SYSTEM_ICONS: Record<RealIconName, LucideIcon> = {
   pos: ShoppingCart,
   cart: ShoppingCart,
@@ -280,7 +308,7 @@ export function RealIcon({
         className
       )}
       loading="eager"
-      decoding="async"
+      decoding="sync"
       draggable={false}
       {...props}
     />

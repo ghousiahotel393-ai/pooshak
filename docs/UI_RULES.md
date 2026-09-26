@@ -305,6 +305,43 @@ per-screen:
 * **Never** add a mobile-only centering/full-bleed rule that removes these insets, and never
   hard-code the nav height (`58px`) anywhere but the token.
 
+### 17.6 Touch Select Targets — click the card, not the hover overlay (MANDATORY)
+On touch (mobile PWA + installed app) there is **no hover**. If the ONLY tappable element for a
+selection is gated behind `group-hover:opacity-100` (a reveal-on-hover overlay), the first tap
+merely applies synthetic `:hover` and the select **never fires** — the classic "images show but
+can't be selected/used" bug (hit on the Pexels media picker). Rules:
+
+* **Click target = always-present element.** Put the select `onClick` on the persistent card /
+  image container (a `<div role="button" tabIndex={0}>` with an `onKeyDown` Enter/Space handler,
+  or a real `<button>`), **never** on the hover-reveal overlay itself.
+* **Overlay is visual-only.** The `group-hover` reveal `<div>` (label / loader / icon) is decor —
+  mark it `pointer-events-none` so it can never intercept the tap. Keep `.touch-reveal` so it is
+  visible on touch, but selection must NOT depend on it.
+* **Reference pattern:** `MediaLibrary.tsx` library grid (parent-div `onClick`, non-interactive
+  overlay) and `PexelsSearchTab.tsx` (fixed to match). Any new pick/select grid MUST follow this —
+  do not rely on the `(hover: none) and (pointer: coarse)` media query alone, which some
+  Android/PWA/hybrid contexts report as `hover: hover` / `pointer: fine`.
+
+### 17.7 Sticky Footer + Scrollable Body — every modal AND every form page (MANDATORY)
+An action footer (Save / Discard / Confirm / Update / Prev-Next / etc.) must NEVER scroll away with
+the content, on any device. Regardless of how much content is inside (few items or many, short form
+or long), the container behaves the same: fixed header, scrollable body in the middle, pinned footer
+at the bottom clear of the bottom-nav + home-indicator safe area.
+
+* **Modals/dialogs:** use the shared `Modal` `footer` prop (already fixed header + scrollable body +
+  sticky footer, `src/shared/ui/Modal.tsx`). Never put action buttons inside the scrollable
+  `children`. `DialogProvider` splits its buttons into a `flex-shrink-0` footer outside the
+  scroll area too.
+* **Form pages (not modals):** use `src/shared/ui/StickyFormFooter.tsx`. It is `position: fixed` at
+  **all** breakpoints (not just `lg:`) and reserves `env(safe-area-inset-bottom)` **+**
+  `var(--bottom-nav-clearance)` so it always sits above the mobile bottom nav. The page content
+  must add matching bottom padding (`pb-[calc(... + var(--bottom-nav-clearance))]`) so nothing hides
+  behind the fixed bar. Never re-introduce an `lg:`-only fixed footer.
+* **Scrollable body with many rows:** long lists inside a modal (e.g. Sale Breakdown item table)
+  get their own bounded `max-h` + `overflow-y-auto` (`TransactionItemsTable.tsx`) so the list scrolls
+  independently and the header/footer never shift with item count.
+
+
 ---
 
 ## 18. DELETIONS, VOIDS & TOMBSTONES

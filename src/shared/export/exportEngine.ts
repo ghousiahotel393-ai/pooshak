@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 /**
@@ -171,7 +172,11 @@ export function exportToExcel(config: ReportExportConfig) {
   XLSX.writeFile(wb, config.filename || defaultFilename(config.title, 'xlsx'));
 }
 
-/* ─── PDF (jsPDF v4 — native table support) ─── */
+/* ─── PDF (jsPDF v4 + jspdf-autotable — proper column fit + alignment) ─── */
+
+function isNumericColumn(col: ExportColumn): boolean {
+  return col.format === 'number' || col.format === 'currency';
+}
 
 export async function exportToPDF(config: ReportExportConfig) {
   const requestedPaper = config.paperSize || 'A4';
@@ -213,23 +218,38 @@ export async function exportToPDF(config: ReportExportConfig) {
   doc.setLineWidth(0.6);
   doc.line(margin, metaY + (isThermal ? 2 : 3), pageWidth - margin, metaY + (isThermal ? 2 : 3));
 
-  // Table — keyed by header label (jsPDF v4 signature)
-  const headers = config.columns.map(c => getColumnLabel(c));
-  const rowsForTable = config.rows.map(row => {
-    const obj: Record<string, string> = {};
-    config.columns.forEach(c => {
-      obj[getColumnLabel(c)] = formatValue(c, row, config.currencySymbol || '');
-    });
-    return obj;
+  // Table — autoTable wraps long text, fits columns to the page width and preserves
+  // per-column alignment (numeric/currency right-aligned) so wide reports never clip.
+  const head = [config.columns.map(c => getColumnLabel(c))];
+  const body = config.rows.map(row =>
+    config.columns.map(c => formatValue(c, row, config.currencySymbol || ''))
+  );
+  const columnStyles: Record<number, { halign: 'left' | 'right' }> = {};
+  config.columns.forEach((c, i) => {
+    if (isNumericColumn(c)) columnStyles[i] = { halign: 'right' };
   });
 
-  doc.table(margin, metaY + (isThermal ? 5 : 7), rowsForTable, headers, {
-    fontSize: isThermal ? 5 : 7.5,
-    padding: isThermal ? 1 : 1.5,
-    headerBackgroundColor: '#10b981',
-    headerTextColor: '#ffffff',
-    autoSize: true,
-    margins: { top: metaY + (isThermal ? 5 : 7), bottom: isThermal ? 4 : 12, left: margin, width: pageWidth - margin * 2 },
+  autoTable(doc, {
+    head,
+    body,
+    startY: metaY + (isThermal ? 5 : 7),
+    margin: { left: margin, right: margin, bottom: isThermal ? 6 : 14 },
+    tableWidth: 'auto',
+    styles: {
+      fontSize: isThermal ? 5 : 7.5,
+      cellPadding: isThermal ? 1 : 1.6,
+      overflow: 'linebreak',
+      valign: 'middle',
+    },
+    headStyles: {
+      fillColor: [16, 185, 129],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      halign: 'left',
+    },
+    bodyStyles: { textColor: [15, 23, 42] },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
+    columnStyles,
   });
 
   // Footer

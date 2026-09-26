@@ -1,6 +1,7 @@
 import { purchaseRecordsService, productsService } from './services';
 import { useInventoryStore } from '../stores/inventoryStore';
 import { useProductsStore } from '../stores/productsStore';
+import { resolveActorName } from './auth/actor';
 
 /**
  * Shared single source of truth for committing stock-in entries to inventory.
@@ -33,7 +34,7 @@ interface StockInCommitParams {
   items: StockInCommitItem[];
   recordAsSupplierBill?: boolean;
   suppliers: { id: string; name: string }[];
-  profile?: { email?: string | null } | null;
+  profile?: { name?: string | null; username?: string | null; email?: string | null } | null;
   date?: Date;
 }
 
@@ -78,7 +79,7 @@ export async function commitStockInToInventory({
       type: (item.type as any) || 'Stock IN',
       supplier,
       date,
-      addedBy: profile?.email || 'System',
+      addedBy: resolveActorName(profile),
       notes: item.notes || `Stock In | ${date.toLocaleDateString()}`
     }, supplierBillData);
 

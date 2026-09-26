@@ -258,9 +258,9 @@ export function TransactionItemsTable({
   });
 
   return (
-    <div className="border border-neutral-200 dark:border-white/[0.08] rounded-md overflow-x-auto custom-scrollbar bg-white dark:bg-surface">
+    <div className="border border-neutral-200 dark:border-white/[0.08] rounded-md overflow-x-auto overflow-y-auto max-h-[32vh] custom-scrollbar overscroll-contain bg-white dark:bg-surface">
       <table className="min-w-full divide-y divide-neutral-200 dark:divide-white/[0.08]">
-        <thead className="bg-neutral-100/80 dark:bg-white/[0.04]">
+        <thead className="bg-neutral-100/80 dark:bg-white/[0.04] sticky top-0 z-10">
           <tr>
             <th className="px-3 py-2 text-[12px] font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-left whitespace-nowrap">{"Item"}</th>
             <th className="px-3 py-2 text-[12px] font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider text-right whitespace-nowrap">{"Qty"}</th>

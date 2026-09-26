@@ -11,6 +11,8 @@ import { formatCurrency } from '../../lib/currencies';
 import { SearchableSelect } from '../../shared/ui/SearchableSelect';
 import { Button } from '../../shared/ui';
 import { SharedSearchBar } from '../../shared/modules/search-and-list';
+import { ExportButton } from '../../shared/export';
+import { getCurrencySymbol } from '../../lib/currencies';
 import { CustomerTable } from './CustomerTable';
 import {
   CURRENCY_DIAL_CODE,
@@ -140,6 +142,23 @@ export function CustomerManager() {
     computeActiveCustomers(appCustomers, appSettings.country),
     [appCustomers, appSettings.country]);
 
+  const exportColumns = [
+    { key: 'name', label: 'Customer' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'email', label: 'Email' },
+    { key: 'priceTier', label: 'Tier' },
+    { key: 'totalPurchases', label: 'Total Purchases', format: 'currency' as const },
+    { key: 'balance', label: 'Balance', format: 'currency' as const },
+  ];
+  const exportRows = filteredCustomers.map(c => ({
+    name: c.name,
+    phone: c.phone || '',
+    email: c.email || '',
+    priceTier: c.priceTier || 'retail',
+    totalPurchases: getCustomerTotalPurchasesFn(c.id, c.totalPurchases),
+    balance: c.balance ?? 0,
+  }));
+
   return (
     <div className="main-content-scroll p-1 sm:p-4 lg:p-6 bg-gray-50/50 dark:bg-app space-y-3 lg:space-y-6 max-w-[1400px] mx-auto">
       {/* Layer 1: Identity & Header */}
@@ -166,14 +185,24 @@ export function CustomerManager() {
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={handleAddCustomer}
-          icon={<Plus className="h-3.5 w-3.5" />}
-          className="shrink-0 h-8 !px-2.5 sm:!px-3 !text-[11px] sm:!text-[12px]"
-        >
-          {"Add Customer"}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <ExportButton
+            data={exportRows}
+            columns={exportColumns}
+            title={'Customers Report'}
+            filtersSummary={`Range: ${dateFilter}${searchTerm ? ` • Search: ${searchTerm}` : ''}`}
+            currencySymbol={getCurrencySymbol(appSettings.currency)}
+            className="!h-8 !px-2.5 !text-[11px]"
+          />
+          <Button
+            variant="primary"
+            onClick={handleAddCustomer}
+            icon={<Plus className="h-3.5 w-3.5" />}
+            className="shrink-0 h-8 !px-2.5 sm:!px-3 !text-[11px] sm:!text-[12px]"
+          >
+            {"Add Customer"}
+          </Button>
+        </div>
       </div>
 
       {/* Layer 2: Filter Toolbar */}

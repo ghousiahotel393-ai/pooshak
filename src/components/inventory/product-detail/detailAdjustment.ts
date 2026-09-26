@@ -1,6 +1,7 @@
 import { purchaseRecordsService, productsService } from '../../../lib/services';
 import { sonner } from '../../../lib/sonner';
 import { useProductsStore, useInventoryStore } from '../../../stores';
+import { resolveActorName } from '../../../lib/auth/actor';
 import { DetailCtx } from './detailContext';
 
 export async function performAdjustment(ctx: DetailCtx) {
@@ -37,7 +38,7 @@ export async function performAdjustment(ctx: DetailCtx) {
       type: 'Adjustment',
       supplier: reason.toUpperCase(),
       date: now,
-      addedBy: ctx.profile?.email || 'System',
+      addedBy: resolveActorName(ctx.profile),
       notes: ctx.adjustmentData.notes ? `${reason}: ${ctx.adjustmentData.notes}` : `Manual Adjustment: ${reason}`
     } as any);
 

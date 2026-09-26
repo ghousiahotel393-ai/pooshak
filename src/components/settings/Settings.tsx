@@ -163,7 +163,7 @@ export function Settings() {
         />
       )}
 
-      <div className="mt-12 pb-32 text-center space-y-4">
+      <div className="mt-12 pb-[calc(7rem+env(safe-area-inset-bottom)+var(--bottom-nav-clearance))] md:pb-32 text-center space-y-4">
         <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-6">
           <Button variant="ghost" onClick={() => openExternalLink('https://www.zaynahspos.com')} className="!min-h-0 !p-0 !rounded-none !gap-2 !text-primary hover:!text-emerald-700 !font-bold underline underline-offset-4 decoration-2 decoration-emerald-100 !shadow-none !hover:bg-transparent dark:!hover:bg-transparent">
             <Globe className="w-4 h-4" />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, ExternalLink, Loader2, ImageOff } from 'lucide-react';
 import { sonner } from '../lib/sonner';
+import { cn } from '../lib/utils';
 import { searchPhotos, PexelsError, type PexelsPhoto } from '../lib/services/pexelsService';
 import { saveFromPexels } from '../lib/services/mediaService';
 
@@ -86,24 +87,45 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
 
       {!error && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {photos.map((p) => (
+          {photos.map((p) => {
+            const busy = usingId === p.id;
+            return (
             <div key={p.id} className="group flex flex-col gap-1">
-              <div className="relative aspect-square rounded-md overflow-hidden border border-neutral-200 dark:border-white/[0.08]" style={{ backgroundColor: p.avg_color || '#eee' }}>
-                <img src={p.src.medium || p.src.tiny} alt={p.alt} loading="lazy" className="w-full h-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => void use(p)}
-                  disabled={usingId === p.id}
-                  className="touch-reveal absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[12px] font-medium transition-opacity disabled:opacity-100"
+              {/*
+                Select target is the ALWAYS-PRESENT card element (role=button), not the
+                hover-reveal overlay. On touch there is no hover; gating the only tap target
+                behind `group-hover` caused the "images show but can't be selected" bug (the
+                first tap only applied synthetic :hover). The overlay is now purely visual —
+                a single tap on the card fires `use()` on every device.
+              */}
+              <div
+                role="button"
+                tabIndex={0}
+                aria-disabled={busy}
+                aria-label={`Use image: ${p.alt || 'Pexels photo'}`}
+                onClick={() => { if (!busy) void use(p); }}
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ' ') && !busy) { e.preventDefault(); void use(p); }
+                }}
+                className="relative aspect-square rounded-md overflow-hidden border border-neutral-200 dark:border-white/[0.08] cursor-pointer select-none"
+                style={{ backgroundColor: p.avg_color || '#eee' }}
+              >
+                <img src={p.src.medium || p.src.tiny} alt={p.alt} loading="lazy" className="w-full h-full object-cover pointer-events-none" />
+                <div
+                  className={cn(
+                    'touch-reveal absolute inset-0 bg-black/45 flex items-center justify-center text-white text-[12px] font-medium transition-opacity pointer-events-none',
+                    busy ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  )}
                 >
-                  {usingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Use this image'}
-                </button>
+                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Use this image'}
+                </div>
               </div>
               <a href={p.url} target="_blank" rel="noreferrer" className="text-[10px] text-neutral-400 hover:text-primary truncate" title={`Photo by ${p.photographer} on Pexels`}>
                 Photo by <span className="underline">{p.photographer}</span>
               </a>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

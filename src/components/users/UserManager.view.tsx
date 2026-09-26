@@ -2,6 +2,7 @@ import { Plus, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Pagination, RealIcon, ScrollableTabBar } from '../../shared/ui';
 import { SharedSearchBar } from '../../shared/modules/search-and-list';
+import { ExportButton } from '../../shared/export';
 import { UserModal } from './UserModal';
 import { UserTableDesktop } from './UserTable.desktop';
 import { UserTableMobile } from './UserTable.mobile';
@@ -44,6 +45,21 @@ export function UserManager({ initialRoleFilter = 'all' }: UserManagerProps = {}
     salesmanUsers,
   } = useUserManagerLogic(initialRoleFilter);
 
+  const exportColumns = [
+    { key: 'name', label: 'Name' },
+    { key: 'username', label: 'Username' },
+    { key: 'role', label: 'Role' },
+    { key: 'email', label: 'Email' },
+    { key: 'status', label: 'Status' },
+  ];
+  const exportRows = filteredUsers.map((u) => ({
+    name: u.name,
+    username: u.username,
+    role: u.role,
+    email: u.email || '',
+    status: u.active ? 'Active' : 'Disabled',
+  }));
+
   return (
     <div className="main-content-scroll p-4 sm:p-6 bg-app space-y-4 max-w-[1400px] mx-auto">
       {/* Header */}
@@ -67,15 +83,25 @@ export function UserManager({ initialRoleFilter = 'all' }: UserManagerProps = {}
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => handleAddUser()}
-          disabled={loading}
-          className="shrink-0 h-8 !px-2.5 sm:!px-3 !text-[11px] sm:!text-[13px]"
-        >
-          <Plus className="h-3.5 w-3.5 mr-1" />
-          {roleFilter === 'salesman' ? 'Add Salesman' : 'Add Staff'}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <ExportButton
+            data={exportRows}
+            columns={exportColumns}
+            title={'Staff Users Report'}
+            filtersSummary={roleFilter !== 'all' ? `Role: ${roleFilter}` : undefined}
+            formats={['pdf', 'xlsx', 'csv', 'print']}
+            className="!h-8 !px-2.5 !text-[11px]"
+          />
+          <Button
+            variant="primary"
+            onClick={() => handleAddUser()}
+            disabled={loading}
+            className="shrink-0 h-8 !px-2.5 sm:!px-3 !text-[11px] sm:!text-[13px]"
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            {roleFilter === 'salesman' ? 'Add Salesman' : 'Add Staff'}
+          </Button>
+        </div>
       </div>
 
       {/* Asymmetric Linear Metrics Strip */}

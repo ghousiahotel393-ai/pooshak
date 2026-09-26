@@ -8,6 +8,8 @@ import { sonner } from '../../lib/sonner';
 import { formatAppDate } from '../../lib/dateUtils';
 import { SharedSearchBar } from '../../shared/modules/search-and-list';
 import { Button, Badge, EmptyState, Pagination, usePagination } from '../../shared/ui';
+import { ExportButton } from '../../shared/export';
+import { getCurrencySymbol } from '../../lib/currencies';
 
 import { DiscountTableMobile } from './DiscountTable.mobile';
 
@@ -74,6 +76,29 @@ const appSettings = useSettingsStore(s => s.settings);
 
   const getDiscountTypeTone = (type: string) => (type === 'percentage' || type === 'fixed' ? 'success' : 'neutral');
 
+  const exportColumns = [
+    { key: 'name', label: 'Name' },
+    { key: 'description', label: 'Description' },
+    { key: 'type', label: 'Type' },
+    { key: 'value', label: 'Value', format: 'number' as const },
+    { key: 'conditions', label: 'Conditions' },
+    { key: 'validFrom', label: 'Valid From', format: 'date' as const },
+    { key: 'validTo', label: 'Valid To', format: 'date' as const },
+    { key: 'autoApply', label: 'Auto Apply' },
+    { key: 'status', label: 'Status' },
+  ];
+  const exportRows = filteredDiscounts.map(d => ({
+    name: d.name,
+    description: d.description || '',
+    type: d.type === 'percentage' ? 'Percentage' : 'Fixed',
+    value: d.value,
+    conditions: Array.isArray(d.conditions) ? d.conditions.length : 0,
+    validFrom: d.validFrom,
+    validTo: d.validTo,
+    autoApply: d.isAutoApply ? 'Yes' : 'No',
+    status: d.active ? 'Active' : 'Inactive',
+  }));
+
   return (
     <div className="main-content-scroll p-1 sm:p-4 lg:p-6 bg-gray-50/50 dark:bg-app space-y-3 lg:space-y-4 max-w-[1400px] mx-auto">
       {/* Header */}
@@ -104,15 +129,25 @@ const appSettings = useSettingsStore(s => s.settings);
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleAddDiscount}
-          icon={<Plus className="h-3.5 w-3.5" />}
-          className="shrink-0"
-        >
-          <span>{"Add Discount"}</span>
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <ExportButton
+            data={exportRows}
+            columns={exportColumns}
+            title={'Discounts Report'}
+            filtersSummary={searchTerm ? `Search: ${searchTerm}` : undefined}
+            currencySymbol={getCurrencySymbol(appSettings.currency)}
+            className="!h-8 !px-2.5 !text-[11px]"
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleAddDiscount}
+            icon={<Plus className="h-3.5 w-3.5" />}
+            className="shrink-0"
+          >
+            <span>{"Add Discount"}</span>
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
