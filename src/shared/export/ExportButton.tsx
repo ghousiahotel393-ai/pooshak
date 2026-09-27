@@ -78,12 +78,15 @@ export function ExportButton({
   }, []);
 
   useEffect(() => {
+    if (!isOpen || isMobile) return;
     const onClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setIsOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
     };
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
-  }, []);
+  }, [isOpen, isMobile]);
 
   const run = async (format: ExportFormat) => {
     if (busy) return;
@@ -100,7 +103,7 @@ export function ExportButton({
       const activeCurrencySymbol = currencySymbol || getCurrencySymbol(storeSettings.currency || 'PKR');
       const activeBrand = brand && brand.name !== DEFAULT_BRAND.name ? brand : {
         name: storeSettings.storeName || DEFAULT_BRAND.name,
-        logo: storeSettings.logoUrl || DEFAULT_BRAND.logo,
+        logo: storeSettings.storeLogo || (storeSettings as any).logoUrl || DEFAULT_BRAND.logo,
       };
 
       const config: ReportExportConfig = {
@@ -182,9 +185,12 @@ export function ExportButton({
         <button
           key={f}
           type="button"
-          onClick={() => onPick(f)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPick(f);
+          }}
           disabled={!!busy}
-          className="w-full flex items-center gap-2 px-2.5 h-8 rounded text-[12px] font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors disabled:opacity-40 text-left"
+          className="w-full flex items-center gap-2 px-2.5 h-8 rounded text-[12px] font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 active:bg-neutral-200 dark:active:bg-white/10 transition-colors disabled:opacity-40 text-left cursor-pointer select-none"
         >
           <span className="text-primary">{FORMAT_META[f].icon}</span>
           <span>{FORMAT_META[f].label}</span>

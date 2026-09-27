@@ -86,6 +86,7 @@ export function Modal({
     <div ref={containerRef} data-modal="true" className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pt-6 sm:pb-6">
       {/* Backdrop */}
       <div 
+        onClick={onClose}
         className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-150 ${activeOpen ? 'opacity-100' : 'opacity-0'}`}
       />
       
