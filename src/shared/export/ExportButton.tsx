@@ -88,33 +88,33 @@ export function ExportButton({
   const run = async (format: ExportFormat) => {
     if (busy) return;
 
-    let rows = data;
-    if (maxRows && data.length > maxRows) {
-      rows = data.slice(0, maxRows);
-      sonner.warning(`Large dataset — exporting first ${maxRows.toLocaleString()} rows`);
-    }
-
-    const storeSettings = useSettingsStore.getState().settings;
-    const activeCurrencySymbol = currencySymbol || getCurrencySymbol(storeSettings.currency || 'PKR');
-    const activeBrand = brand && brand.name !== DEFAULT_BRAND.name ? brand : {
-      name: storeSettings.storeName || DEFAULT_BRAND.name,
-      logo: storeSettings.logoUrl || DEFAULT_BRAND.logo,
-    };
-
-    const config: ReportExportConfig = {
-      title,
-      subtitle,
-      columns,
-      rows,
-      filtersSummary,
-      filename,
-      currencySymbol: activeCurrencySymbol,
-      brand: activeBrand,
-      paperSize: storeSettings.receiptPaperSize || 'A4',
-    };
-
     setBusy(format);
     try {
+      let rows = data;
+      if (maxRows && data.length > maxRows) {
+        rows = data.slice(0, maxRows);
+        sonner.warning(`Large dataset — exporting first ${maxRows.toLocaleString()} rows`);
+      }
+
+      const storeSettings = useSettingsStore.getState().settings || ({} as any);
+      const activeCurrencySymbol = currencySymbol || getCurrencySymbol(storeSettings.currency || 'PKR');
+      const activeBrand = brand && brand.name !== DEFAULT_BRAND.name ? brand : {
+        name: storeSettings.storeName || DEFAULT_BRAND.name,
+        logo: storeSettings.logoUrl || DEFAULT_BRAND.logo,
+      };
+
+      const config: ReportExportConfig = {
+        title,
+        subtitle,
+        columns,
+        rows,
+        filtersSummary,
+        filename,
+        currencySymbol: activeCurrencySymbol,
+        brand: activeBrand,
+        paperSize: storeSettings.receiptPaperSize || 'A4',
+      };
+
       if (format === 'print') {
         const res = await printReport(config);
         if (res.method === 'failed') {

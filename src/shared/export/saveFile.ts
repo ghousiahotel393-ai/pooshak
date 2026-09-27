@@ -164,11 +164,17 @@ export async function saveFile(blob: Blob, filename: string, mime = 'application
       }
     }
 
-    // Try Web Share on ANY platform where navigator.canShare is supported (Mobile Safari, Android Chrome, PWA)
-    const shared = await saveViaWebShare(blob, filename, mime);
-    if (shared) return shared;
+    // Installed / standalone PWA (esp. iOS) — a raw <a download> is unreliable there, so
+    // prefer Web Share. On a REGULAR browser tab (desktop or mobile web) do NOT use Web Share:
+    // export generation is async, so by the time share() is called the transient user-gesture
+    // has expired and it throws — which previously made "Export as PDF" silently do nothing.
+    // Regular browsers download reliably via the anchor, so use that.
+    if (isStandalonePWA()) {
+      const shared = await saveViaWebShare(blob, filename, mime);
+      if (shared) return shared;
+    }
 
-    // Desktop browser / Electron / fallback: standard anchor download
+    // Desktop browser / mobile web / Electron / fallback: standard anchor download.
     return anchorDownload(blob, filename);
   } catch (e: any) {
     console.error('[saveFile] failed:', e);
