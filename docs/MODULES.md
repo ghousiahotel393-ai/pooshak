@@ -69,20 +69,33 @@ Import: `import { SharedSearchBar, SharedProductList, useDragDropList } from '..
 
 ## 📤 4. Unified Export & Reporting — `src/shared/export/`
 
-**THE only export path for all reports/actions app-wide.** Hand-rolled CSV/print/Excel/PDF code is BANNED everywhere except `src/components/pos/**` (receipts/KOT stay self-contained) and full DB backup (see exclusions).
+**THE only export path for all reports/actions app-wide.** Hand-rolled CSV/print/Excel/PDF code, direct `window.print()`, raw `jsPDF`/`XLSX` calls, or bespoke `<a download>` anchors are **STRICTLY BANNED** everywhere except `src/components/pos/**` (receipts/KOT stay self-contained) and full DB backup (see exclusions).
 
 Import: `import { ExportButton, exportToCSV, exportToPDF, printReport } from '../../shared/export';`
 
 | Module | Purpose |
 |--------|---------|
-| `exportEngine.ts` | `exportToCSV` (BOM + title/filter/timestamp rows), `exportToExcel` (SheetJS), `exportToPDF` (jsPDF landscape, branded emerald header, `doc.table` by header label, page footers), `printReport` (branded print HTML), `triggerDownload`, `defaultFilename`, `safeFilename`, `formatValue`/`excelValue`, `DEFAULT_BRAND` |
-| `ExportButton.tsx` | `data`, `columns` (`{key,label,format?}`), `title`, `subtitle?`, `filtersSummary?`, `formats?` (`csv\|excel\|pdf\|print`), `compact?` (icon-only), `maxRows?`, `currencySymbol?`, `brand?` — desktop dropdown / mobile BottomSheet, busy+success states |
+| `exportEngine.ts` | Single authoritative engine for `exportToCSV` (UTF-8 BOM), `exportToExcel` (SheetJS array buffer), `exportToPDF` (jsPDF v4 + autotable with dynamic slip height & auto-scaled thermal/A4 fonts), `triggerDownload`, `defaultFilename`, `safeFilename`, `formatValue`/`excelValue`, `DEFAULT_BRAND`. |
+| `ExportButton.tsx` | Universal export trigger: `data`, `columns` (`{key,label,format?}`), `title`, `subtitle?`, `filtersSummary?`, `formats?` (`csv\|excel\|pdf\|print`), `compact?` (icon-only), `maxRows?`, `currencySymbol?`, `brand?`, `paperSize?`. Renders labeled dropdown on desktop, native `BottomSheet` on mobile, with tactile feedback and live loading spin state. |
+| `saveFile.ts` | Universal cross-platform delivery: writes to Documents + opens OS Share sheet on Capacitor native (Android/iOS), uses Web Share API on PWA where supported, and clean hidden anchor click (without popup-blocking `target="_blank"`) on desktop/Electron. |
+| `printReport.ts` | Branded HTML print layout with `@page` sizing (`80mm auto`, `58mm auto`, or A4) matching Settings, falling back to PDF/AirPrint on mobile WebView. |
 
-**Rules:**
-- ALWAYS export the **currently filtered dataset** — never the full unfiltered table.
-- All outputs carry branded header + timestamp + active-filter summary.
-- Reports migrated so far: Sales/Expenses/Customers/Suppliers/Financial tabs, TransactionsManager, PurchaseHistory, InventoryReportManager, PurchaseOrderSystem, ActionHistory, AuditTimeline.
-- ❌ **Excluded:** full DB backup (JSON) — `BackupTab`/`DatabaseTools`/`InventoryManager` stay separate; POS receipt/KOT print — `pos/ReceiptPrint.tsx`, `pos/KOTPrint.tsx`; barcode label printing.
+**Mandatory Architectural Rules (Strictly Enforced):**
+1. **Settings-Authoritative Printer & Paper Size:**
+   - PDF export and Browser Print MUST respect the store/hardware printer size configured in Settings (`80mm` standard thermal, `58mm` compact thermal, or `A4` office sheet) resolved via `storeSettings.receiptPaperSize` / `localStorage.pos_hardware_printer_config`.
+   - Never override or drop 80mm/58mm thermal formatting for A4 based on column count.
+   - `exportEngine.ts` dynamically calculates thermal slip height to avoid huge blank tails and auto-scales column fonts (`4.8pt` - `6.5pt` on 80mm, `4pt` - `5.5pt` on 58mm) so wide reports never clip.
+2. **Mobile & Portal Safety (Anti-Unmount Bug Rule):**
+   - On mobile/small screens (<768px), `ExportButton` displays a `BottomSheet` portaled to `document.body`.
+   - Any `onClickOutside` or document-level `mousedown` listener MUST be scoped to desktop only (`if (!isOpen || isMobile) return;`). A document-level `mousedown` listener must NEVER run when a portaled modal is open, otherwise `mousedown` destroys the modal before the browser fires the button's `click` event, leaving the user with zero response.
+3. **Cross-Platform Delivery via `saveFile.ts`:**
+   - Every file download MUST route through `saveFile(blob, filename, mime)` in `src/shared/export/saveFile.ts`.
+   - Never attach `target="_blank"` to download anchors (triggers popup blockers and empty `about:blank` tabs in Chrome/Safari).
+4. **Always Filtered:**
+   - ALWAYS export the **currently filtered dataset** — never the full unfiltered table. Pass active search/date filter summaries via `filtersSummary`.
+5. **Reports Migrated & Covered:**
+   - Sales/Expenses/Customers/Suppliers/Financial tabs, TransactionsManager, PurchaseHistory, InventoryReportManager, PurchaseOrderSystem, UserManager, CustomerLedgerTab, DiscountManager.
+6. ❌ **Excluded:** full DB backup (JSON) — `BackupTab`/`DatabaseTools`/`InventoryManager` stay separate; POS receipt/KOT print — `pos/ReceiptPrint.tsx`, `pos/KOTPrint.tsx`; barcode label printing.
 
 ---
 

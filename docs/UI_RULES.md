@@ -49,6 +49,7 @@ Every view in the application must reuse the standardized components in `src/sha
 | **Toast Notifications** | `src/lib/sonner.ts` | Minimal notifications for confirmed actions (no spam) |
 | **Media Library** | `src/shared/MediaLibrary.tsx` | Content-addressed local image selection & file ingestion |
 | **Segmented Control** | `src/shared/ui/SegmentedControl.tsx` | Flat 32px segmented tabs with hairline active indicator |
+| **Unified Export Button** | `src/shared/export/ExportButton.tsx` | Single mandatory trigger for all reports (PDF/Excel/CSV/Print). Strictly inherits settings printer size (80mm/58mm/A4). Bespoke export triggers banned. |
 
 ---
 
