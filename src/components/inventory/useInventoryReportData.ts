@@ -234,10 +234,13 @@ export function useInventoryReportData({
     { key: 'supplier', label: "Supplier" },
     { key: 'stock', label: "Stock", format: 'number' as const },
     { key: 'stockStatus', label: "Status" },
-    { key: 'stockValue', label: `Stock Value (${appSettings.currency})`, format: 'currency' as const },
+    { key: 'stockValue', label: `Stock Value Cost (${appSettings.currency})`, format: 'currency' as const },
+    { key: 'potentialRevenue', label: `Stock Value Sale (${appSettings.currency})`, format: 'currency' as const },
     { key: 'soldQty', label: "Sold Qty", format: 'number' as const },
     { key: 'revenue', label: `Revenue (${appSettings.currency})`, format: 'currency' as const },
+    { key: 'cogs', label: `COGS (${appSettings.currency})`, format: 'currency' as const },
     { key: 'grossProfit', label: `Gross Profit (${appSettings.currency})`, format: 'currency' as const },
+    { key: 'profitMargin', label: "Margin %", format: 'number' as const },
   ];
 
   const exportRows = useMemo(() => inventoryData.map(p => ({
@@ -248,9 +251,12 @@ export function useInventoryReportData({
     stock: p.stock,
     stockStatus: p.stockStatus,
     stockValue: p.stockValue,
+    potentialRevenue: p.potentialRevenue,
     soldQty: p.soldQty,
     revenue: p.revenue,
+    cogs: p.cogs,
     grossProfit: p.grossProfit,
+    profitMargin: p.profitMargin,
   })), [inventoryData]);
 
   return {

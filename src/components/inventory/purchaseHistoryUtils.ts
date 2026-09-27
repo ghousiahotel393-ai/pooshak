@@ -91,7 +91,9 @@ export function filterPurchaseRecords(
     return matchesSearch && matchesSupplier && matchesCategory && matchesDate && matchesUser;
   })
     .sort((a, b) => new Date(b.date || Date.now()).getTime() - new Date(a.date || Date.now()).getTime())
-    .slice(0, 300);
+    // Was capped at 300, which silently truncated exports for shops with more purchase
+    // records in range. Raised so the (paginated) list and the export cover the full set.
+    .slice(0, 5000);
 }
 
 export function buildExportRows(filteredRecords: PurchaseRecord[]) {

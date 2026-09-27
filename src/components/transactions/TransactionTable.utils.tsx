@@ -22,6 +22,16 @@ const getSaleTypeLabel = (type?: string) => {
   }
 };
 
+const getStatusLabel = (status?: string) => {
+  switch (status) {
+    case 'refunded': return 'Refunded';
+    case 'partially_refunded': return 'Partially Refunded';
+    case 'voided': return 'Voided';
+    case 'pending': return 'Pending';
+    default: return 'Completed';
+  }
+};
+
 export const computeWalletTotals = (
   filteredTransactions: Sale[],
   appExpenses: any[],
@@ -121,7 +131,9 @@ export const buildExportColumns = (isAdmin: boolean) => {
     { key: 'subtotal', label: "Subtotal", format: 'currency' as const },
     { key: 'discountAmount', label: "Discount", format: 'currency' as const },
     { key: 'taxAmount', label: "Tax", format: 'currency' as const },
-    { key: 'total', label: "Total Revenue", format: 'currency' as const },
+    { key: 'refundedAmount', label: "Refunded", format: 'currency' as const },
+    { key: 'total', label: "Net Revenue", format: 'currency' as const },
+    { key: 'status', label: "Status" },
   ];
   if (isAdmin) {
     cols.push(
@@ -161,6 +173,14 @@ export const buildExportRows = (
       return sum + (item.purchaseCost ?? (item.product?.cost || 0) * item.quantity);
     }, 0);
 
+    // Match the Sales Report / on-screen figures: revenue is NET of refunds so a
+    // refunded/partially-refunded sale is never overstated. Fully refunded → 0 (goods back
+    // → COGS 0 too); partial → total minus the refunded portion.
+    const refundedAmount = Number(sale.refundedAmount) || 0;
+    const isRefunded = sale.status === 'refunded' || (sale as any).isDeleted;
+    const netTotal = isRefunded ? 0 : Math.max(0, (Number(sale.total) || 0) - refundedAmount);
+    const netCogs = isRefunded ? 0 : totalCostLocal;
+
     return {
       date: formatAppDate(dateObj, country),
       time: formatAppTime(dateObj, timezone),
@@ -178,8 +198,10 @@ export const buildExportRows = (
       subtotal: sale.subtotal,
       discountAmount: sale.discountAmount,
       taxAmount: sale.taxAmount,
-      total: sale.total,
-      ...(isAdmin ? { costOfGoods: totalCostLocal, grossProfit: sale.total - totalCostLocal } : {}),
+      refundedAmount,
+      total: netTotal,
+      status: getStatusLabel(sale.status),
+      ...(isAdmin ? { costOfGoods: netCogs, grossProfit: netTotal - netCogs } : {}),
     };
   });
 };
