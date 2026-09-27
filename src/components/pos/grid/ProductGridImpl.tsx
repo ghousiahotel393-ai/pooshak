@@ -229,7 +229,7 @@ export function ProductGrid({ onAddToCart, onOpenDrafts, onAddTab: _onAddTab, is
 
       {showScanner && (
         <CameraScanner
-          isContinuous={true}
+          isContinuous={false}
           onScan={(code) => {
             const term = code.trim();
             setSearchTerm(term);
