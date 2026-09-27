@@ -2,6 +2,7 @@ import React from 'react';
 import { PackageOpen, TrendingDown, Building2, Trash2, Filter, CheckCircle2 } from 'lucide-react';
 import { SearchableSelect } from '../../shared/ui/SearchableSelect';
 import { Button, ToggleSwitch } from '../../shared/ui';
+import { formatCurrency } from '../../lib/currencies';
 import { PurchaseOrderForm } from './PurchaseOrderForm';
 import { usePurchaseOrder } from './usePurchaseOrder';
 
@@ -62,7 +63,7 @@ export function PurchaseOrderSystem() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1 p-1 bg-neutral-100/80 dark:bg-surface border border-neutral-200 dark:border-white/[0.08] rounded-md w-full sm:w-fit">
+            <div className="w-full grid grid-cols-2 gap-1 sm:w-fit sm:flex p-1 bg-neutral-100/80 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08] rounded-md">
               {[
                 { id: 'auto', label: "Auto (Reorder Levels)" },
                 { id: 'manual', label: "Manual Custom Order" }
@@ -73,9 +74,9 @@ export function PurchaseOrderSystem() {
                     key={mode.id}
                     type="button"
                     onClick={() => { setPoMode(mode.id as any); setIsGenerated(false); }}
-                    className={`h-7 px-3 rounded text-[12px] font-medium transition-colors whitespace-nowrap ${
+                    className={`h-8 sm:h-7 px-3 rounded text-[12px] font-medium transition-all text-center flex items-center justify-center whitespace-nowrap ${
                       isActive
-                        ? 'bg-white dark:bg-white/[0.1] text-neutral-900 dark:text-white shadow-none border border-neutral-200 dark:border-white/[0.1]'
+                        ? 'bg-primary text-white font-semibold shadow-none border border-primary'
                         : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white border border-transparent'
                     }`}
                   >
@@ -185,6 +186,51 @@ export function PurchaseOrderSystem() {
         exportColumns={exportColumns}
         exportRows={exportRows}
       />
+
+      {/* Pinned Sticky Bottom Action Bar for Commit & Discard */}
+      {isGenerated && activeList.length > 0 && (
+        <div className="print-hide sticky bottom-0 z-30 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-3 sm:px-5 bg-white/95 dark:bg-surface/95 backdrop-blur border-t border-neutral-200 dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-3 shadow-lg pb-[calc(0.75rem+var(--bottom-nav-clearance))] md:pb-3 animate-in slide-in-from-bottom-2 duration-200">
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleReset}
+              variant="secondary"
+              size="sm"
+              className="h-8.5 px-3 text-[12px]"
+              icon={<Trash2 className="h-3.5 w-3.5 text-rose-500" />}
+            >
+              Discard PO
+            </Button>
+
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded border border-neutral-200 dark:border-white/[0.08] bg-neutral-50/50 dark:bg-white/[0.02]">
+              <span className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 whitespace-nowrap">Supplier Bill</span>
+              <ToggleSwitch
+                checked={recordAsSupplierBill}
+                onChange={setRecordAsSupplierBill}
+                size="sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-mono uppercase text-neutral-400">Total Estimated</p>
+              <p className="text-[13px] font-mono font-bold text-neutral-900 dark:text-white tabular-nums">
+                {totalItemsNeeded} Units • {formatCurrency(estimatedCost, appSettings.currency)}
+              </p>
+            </div>
+
+            <Button
+              onClick={handleBulkAdmit}
+              variant="primary"
+              size="sm"
+              className="h-8.5 px-4 text-[12px] font-semibold"
+              icon={<CheckCircle2 className="h-4 w-4" />}
+            >
+              Commit &amp; Add to Stock
+            </Button>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @media print {

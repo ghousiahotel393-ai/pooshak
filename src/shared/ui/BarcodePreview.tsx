@@ -15,7 +15,11 @@ interface BarcodePreviewProps {
 const barcodeCache = new Map<string, { innerHTML: string; width: string; height: string; viewBox: string }>();
 
 function getBarcodeData(value: string, options?: any) {
-  const cacheKey = `${value}_${JSON.stringify(options)}`;
+  // Enforce displayValue: false in SVG generation so JsBarcode only produces bars.
+  // JsBarcode's SVG <text> elements are clipped/truncated in html2canvas / PNG sharing
+  // (e.g. "INV--1(") and duplicate text. The React <span> below renders complete text.
+  const cleanOptions = { ...options, displayValue: false };
+  const cacheKey = `${value}_${JSON.stringify(cleanOptions)}`;
   if (barcodeCache.has(cacheKey)) {
     return barcodeCache.get(cacheKey)!;
   }
@@ -26,16 +30,11 @@ function getBarcodeData(value: string, options?: any) {
       format: 'CODE128',
       width: 1.5,
       height: 60,
-      fontSize: 12,
-      displayValue: false,
       margin: 2,
       background: 'transparent',
-      // Concrete black (never `currentColor`): the barcode always sits on a white
-      // container, and html2canvas cannot resolve `currentColor` when it serializes
-      // the inline SVG for capture — that produced the garbled/blank shared receipt
-      // barcode. A concrete colour rasterizes identically on screen and in capture.
       lineColor: '#000000',
-      ...options
+      ...cleanOptions,
+      displayValue: false
     });
 
     const w = svg.getAttribute('width') || '100';
@@ -73,11 +72,13 @@ export const BarcodePreview = React.memo(
       ) : null;
     }
 
+    const shouldShowValue = showValue !== false;
+
     const barcode = getBarcodeData(value, {
       height: height !== undefined ? height : (inline ? 12 : 28),
       width: inline ? 0.75 : 0.9,
-      displayValue: showValue ?? false,
-      ...options
+      ...options,
+      displayValue: false
     });
 
     const containerStyle: React.CSSProperties = inline
@@ -99,14 +100,13 @@ export const BarcodePreview = React.memo(
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          marginTop: '8px',
-          padding: '12px',
+          padding: '10px 14px',
           backgroundColor: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '12px',
           border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-          width: '100%',
-          maxWidth: '240px',
+          boxShadow: 'none',
+          width: 'fit-content',
+          maxWidth: '100%',
           margin: '8px auto',
         };
 
@@ -119,15 +119,15 @@ export const BarcodePreview = React.memo(
 
     const textStyle: React.CSSProperties = {
       display: 'block',
-      margin: inline ? '2px auto 0 auto' : '6px auto 0 auto',
+      margin: inline ? '2px auto 0 auto' : '4px auto 0 auto',
       textAlign: 'center',
       fontFamily: 'monospace',
-      fontWeight: '900',
+      fontWeight: '700',
       color: '#000000',
       fontSize: inline ? '9px' : '11px',
       letterSpacing: '0.05em',
-      wordBreak: 'break-all',
       whiteSpace: 'nowrap',
+      width: '100%',
     };
 
     return (
@@ -135,7 +135,7 @@ export const BarcodePreview = React.memo(
         className={
           inline
             ? `flex flex-col items-center justify-center overflow-hidden h-[44px] bg-white px-2 py-0.5 rounded border border-neutral-200 dark:border-white/[0.08] ${className || ''}`
-            : `mt-2 p-3 bg-white rounded-md border border-neutral-200 dark:border-white/[0.08] flex flex-col items-center justify-center shadow-none ${className || ''}`
+            : `p-2.5 bg-white rounded-xl border border-neutral-200 dark:border-white/[0.08] flex flex-col items-center justify-center shadow-none ${className || ''}`
         }
         style={containerStyle}
       >
@@ -147,9 +147,9 @@ export const BarcodePreview = React.memo(
           style={svgStyle}
           dangerouslySetInnerHTML={{ __html: barcode.innerHTML }}
         />
-        {value && (
+        {shouldShowValue && value && (
           <span
-            className={inline ? "text-[9px] font-mono font-black mt-0.5 text-black leading-none select-all tracking-wider" : "text-[11px] font-mono font-black mt-1.5 text-black select-all tracking-wider"}
+            className={inline ? "text-[9px] font-mono font-bold mt-0.5 text-black leading-none select-all tracking-wider text-center" : "text-[11px] font-mono font-bold mt-1 text-black select-all tracking-wider text-center"}
             style={textStyle}
           >
             {value}

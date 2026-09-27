@@ -157,28 +157,11 @@ export function CheckoutPinVerifyModal({
           className="w-full max-w-[240px] h-9 px-3 mt-2 mb-1 text-center text-[14px] tracking-widest font-mono rounded bg-neutral-100 dark:bg-white/[0.06] border border-neutral-200 dark:border-white/[0.08] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
         />
 
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-4">
           <CapsLockIndicator variant="inline" />
           <span className="text-[11px] font-mono text-neutral-500">
             {pin.length} / 64 (min 4)
           </span>
-        </div>
-
-        {/* PIN Dots Display */}
-        <div className="flex items-center justify-center gap-2 mb-4 h-9 flex-wrap max-w-[280px]">
-          {Array.from({ length: Math.max(pin.length, 6) }).map((_, idx) => {
-            const isFilled = idx < pin.length;
-            return (
-              <div
-                key={idx}
-                className={`w-3.5 h-3.5 rounded-full border transition-all duration-150 ${
-                  isFilled
-                    ? 'bg-primary border-primary scale-110 shadow-sm shadow-primary/30'
-                    : 'bg-neutral-200 dark:bg-neutral-800 border-neutral-300 dark:border-white/20'
-                }`}
-              />
-            );
-          })}
         </div>
 
         {error && (

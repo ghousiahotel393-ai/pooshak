@@ -22,7 +22,7 @@ export const SliderRow = ({ label, disp, min, max, step, val, set }: {
         <div className="space-y-1">
             <div className="flex justify-between items-center px-1">
                 <span className="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-none">{label}</span>
-                <span className="text-[10px] font-black text-blue-600 min-w-[32px] text-right leading-none">{disp}</span>
+                <span className="text-[10px] font-black text-primary dark:text-emerald-400 min-w-[32px] text-right leading-none">{disp}</span>
             </div>
             <div className="flex items-center gap-2">
                 <Button
@@ -35,7 +35,7 @@ export const SliderRow = ({ label, disp, min, max, step, val, set }: {
 
                 <input type="range" min={min} max={max} step={step} value={val}
                     onChange={e => set(parseFloat(e.target.value))}
-                    className="flex-1 h-1 bg-gray-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-600" />
+                    className="flex-1 h-1 bg-gray-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-primary" />
 
                 <Button
                     type="button"
@@ -106,7 +106,7 @@ export function BarcodeSidebar({
             flex-1 lg:flex-none lg:h-full
             "
         >
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scrollbar-hide min-h-0">
+            <div className="flex-1 overflow-y-auto px-4 py-3 pb-12 space-y-4 scrollbar-hide min-h-0">
 
                 <section>
                     <SectionTitle>Layout Configuration</SectionTitle>
@@ -156,7 +156,7 @@ export function BarcodeSidebar({
                             <div>
                                 <div className="flex justify-between items-center mb-1">
                                     <span className="text-[9px] font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Columns</span>
-                                    <span className="text-[10px] font-black text-blue-600">{a4Columns}</span>
+                                    <span className="text-[10px] font-black text-primary dark:text-emerald-400">{a4Columns}</span>
                                 </div>
                                 <div className="flex bg-neutral-100 dark:bg-white/[0.05] p-0.5 rounded-md border border-neutral-200 dark:border-white/[0.08]">
                                     {[2, 3, 4, 5, 6].map(n => (
@@ -282,7 +282,7 @@ export function BarcodeSidebar({
                 </section>
             </div>
 
-            <div className="flex-shrink-0 relative z-10 px-4 py-2.5 bg-white dark:bg-surface border-t border-neutral-200 dark:border-white/[0.08] shadow-none">
+            <div className="flex-shrink-0 relative z-10 px-4 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white dark:bg-surface border-t border-neutral-200 dark:border-white/[0.08] shadow-none">
                 <Button variant="primary" size="sm" onClick={saveAsDefault} disabled={isSaving}
                     className="w-full">
                     {isSaving

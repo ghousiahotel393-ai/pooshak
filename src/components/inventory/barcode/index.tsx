@@ -172,7 +172,7 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
     );
 
     return (
-        <div className="flex flex-col h-full min-h-[600px] w-full bg-white dark:bg-surface overflow-hidden relative border-t border-neutral-200 dark:border-white/[0.08]">
+        <div className="flex flex-col h-full min-h-0 w-full bg-white dark:bg-surface overflow-hidden relative border-t border-neutral-200 dark:border-white/[0.08]">
             <div className="flex-shrink-0 flex items-center justify-between gap-2 px-3 md:px-5 py-2.5 border-b border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-surface flex-wrap">
                 <div className="flex items-center gap-2.5 min-w-0">
                     <div className="p-1.5 bg-neutral-100 dark:bg-white/[0.06] rounded flex-shrink-0">
@@ -210,7 +210,7 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
                     setGlobalQty={setGlobalQty}
                 />
                 <div ref={previewAreaRef}
-                    className="h-[35vh] lg:h-full lg:flex-1 flex-shrink-0 bg-neutral-100 dark:bg-[#0f0f0f] flex flex-col overflow-hidden order-1 lg:order-2 relative min-h-0"
+                    className="h-[22vh] sm:h-[30vh] lg:h-full lg:flex-1 flex-shrink-0 bg-neutral-100 dark:bg-[#0f0f0f] flex flex-col overflow-hidden order-1 lg:order-2 relative min-h-0"
                 >
                     <BarcodePreviewToolbar
                         paperSize={paperSize}

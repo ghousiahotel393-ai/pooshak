@@ -187,7 +187,7 @@ export function UserModal({ isOpen, onClose, user, currentUser: propCurrentUser,
             <div className="flex items-center gap-2">
               <KeyRound className="h-4 w-4 text-primary" />
               <span className="text-[12.5px] font-semibold text-neutral-900 dark:text-white">
-                {user ? 'Reset Security PIN (Leave blank to keep current)' : 'Security PIN (4–12 Digits) *'}
+                {user ? 'Reset Security PIN (Leave blank to keep current)' : 'Security PIN / Password (4–64 chars) *'}
               </span>
               {isCapsLock && <CapsLockIndicator variant="inline" />}
             </div>
@@ -212,25 +212,25 @@ export function UserModal({ isOpen, onClose, user, currentUser: propCurrentUser,
                 type={showPin ? 'text' : 'password'}
                 name="pin"
                 autoComplete="new-password"
-                inputMode="numeric"
-                maxLength={12}
+                inputMode="text"
+                maxLength={64}
                 value={formData.pin}
                 onChange={handleChange}
                 required={!user}
                 className="h-8 px-2.5 text-[13px] font-mono tracking-widest bg-white dark:bg-black/30 border border-neutral-300 dark:border-white/[0.12] rounded text-neutral-900 dark:text-white focus:outline-none focus:border-emerald-500"
-                placeholder={user ? 'New PIN (optional)' : 'Enter 4-12 digit PIN'}
+                placeholder={user ? 'New PIN/password (optional)' : 'PIN or password (4-64)'}
               />
               <input
                 type={showPin ? 'text' : 'password'}
                 name="confirmPin"
                 autoComplete="new-password"
-                inputMode="numeric"
-                maxLength={12}
+                inputMode="text"
+                maxLength={64}
                 value={formData.confirmPin}
                 onChange={handleChange}
                 required={!user || Boolean(formData.pin)}
                 className="h-8 px-2.5 text-[13px] font-mono tracking-widest bg-white dark:bg-black/30 border border-neutral-300 dark:border-white/[0.12] rounded text-neutral-900 dark:text-white focus:outline-none focus:border-emerald-500"
-                placeholder="Confirm PIN"
+                placeholder="Confirm PIN/password"
               />
             </div>
           )}

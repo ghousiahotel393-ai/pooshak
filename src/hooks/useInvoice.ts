@@ -35,8 +35,9 @@ export function useInvoiceGeneration() {
     const newCounter = currentCounter + 1;
     const padDigits = appSettings.invoicePadDigits !== undefined ? appSettings.invoicePadDigits : 4;
     const serialStr = padDigits > 0 ? newCounter.toString().padStart(padDigits, '0') : newCounter.toString();
-    const prefix = (appSettings.invoicePrefix || 'INV').trim().toUpperCase();
-    const invoiceNumber = prefix ? `${prefix}-${serialStr}` : serialStr;
+    const rawPrefix = (appSettings.invoicePrefix || 'INV').trim().toUpperCase();
+    const cleanPrefix = rawPrefix.replace(/-+$/, '');
+    const invoiceNumber = cleanPrefix ? `${cleanPrefix}-${serialStr}` : serialStr;
 
     // 4. Update store and persistent storages
     useSettingsStore.getState().incrementInvoiceCounter(newCounter);

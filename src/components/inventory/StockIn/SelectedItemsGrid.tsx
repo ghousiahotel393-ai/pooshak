@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from '../../../shared/ui';
+import { ProductThumb } from '../../../shared/ui/ProductThumb';
 import { SearchableSelect } from '../../../shared/ui/SearchableSelect';
 
 interface Props {
@@ -34,8 +35,17 @@ export function SelectedItemsGrid({ selectedItems, updateItem, removeItem }: Pro
               {selectedItems.map(item => (
                 <tr key={item.id} className="hover:bg-neutral-50/50 dark:hover:bg-white/[0.01] transition-colors">
                   <td className="px-3 py-2">
-                    <p className="text-[12px] font-medium text-neutral-900 dark:text-white leading-tight">{item.name}</p>
-                    <p className="text-[10px] font-mono text-neutral-400 mt-0.5">{item.sku || 'SKU_UNKNOWN'}</p>
+                    <div className="flex items-center gap-2">
+                      {item.image && (
+                        <div className="w-8 h-8 rounded overflow-hidden shrink-0 border border-neutral-200 dark:border-white/[0.08] bg-neutral-100 dark:bg-white/[0.04]">
+                          <ProductThumb image={item.image} alt={item.name} imgClassName="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-[12px] font-medium text-neutral-900 dark:text-white leading-tight truncate">{item.name}</p>
+                        <p className="text-[10px] font-mono text-neutral-400 mt-0.5">{item.sku || 'SKU_UNKNOWN'}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     <input
@@ -109,9 +119,16 @@ export function SelectedItemsGrid({ selectedItems, updateItem, removeItem }: Pro
               className="p-3 rounded-md bg-white dark:bg-surface border border-neutral-200 dark:border-white/[0.08] shadow-none space-y-2.5"
             >
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold text-neutral-900 dark:text-white leading-tight truncate">{item.name}</p>
-                  <p className="text-[10.5px] font-mono text-neutral-400 mt-0.5">{item.sku || 'No SKU'}</p>
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  {item.image && (
+                    <div className="w-10 h-10 rounded-md overflow-hidden shrink-0 border border-neutral-200 dark:border-white/[0.08] bg-neutral-100 dark:bg-white/[0.04]">
+                      <ProductThumb image={item.image} alt={item.name} imgClassName="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-semibold text-neutral-900 dark:text-white leading-tight truncate">{item.name}</p>
+                    <p className="text-[10.5px] font-mono text-neutral-400 mt-0.5">{item.sku || 'No SKU'}</p>
+                  </div>
                 </div>
                 <Button
                   onClick={() => removeItem(item.id)}

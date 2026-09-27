@@ -1,6 +1,7 @@
 import React from 'react';
 import { PackageOpen, Trash2 } from 'lucide-react';
 import { EmptyState, Pagination, Button } from '../../shared/ui';
+import { ProductThumb } from '../../shared/ui/ProductThumb';
 import { formatCurrency, getCurrencySymbol } from '../../lib/currencies';
 import type { PurchaseOrderFormTableProps } from './PurchaseOrderForm.types';
 
@@ -82,8 +83,17 @@ export function PurchaseOrderFormTable({
                 {paginatedList.map(item => (
                   <tr key={item.id} className="h-11 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition-colors print:break-inside-avoid">
                     <td className="px-3">
-                      <p className="font-medium text-neutral-900 dark:text-white text-[13px] leading-tight">{item.name}</p>
-                      <p className="text-[11px] font-mono text-neutral-500 mt-0.5">{item.sku || 'No SKU'}</p>
+                      <div className="flex items-center gap-2">
+                        {item.image && (
+                          <div className="w-8 h-8 rounded overflow-hidden shrink-0 border border-neutral-200 dark:border-white/[0.08] bg-neutral-100 dark:bg-white/[0.04]">
+                            <ProductThumb image={item.image} alt={item.name} imgClassName="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-medium text-neutral-900 dark:text-white text-[13px] leading-tight truncate">{item.name}</p>
+                          <p className="text-[11px] font-mono text-neutral-500 mt-0.5">{item.sku || 'No SKU'}</p>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-3 text-center">
                       <input
@@ -162,17 +172,24 @@ export function PurchaseOrderFormTable({
                 >
                   {/* Top Row: Name, SKU, Stock, Remove Button */}
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-semibold text-[13px] text-neutral-900 dark:text-white leading-snug truncate">
-                        {item.name}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[11px] font-mono text-neutral-500 truncate">
-                          {item.sku || 'No SKU'}
-                        </span>
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${item.stock <= 0 ? 'bg-rose-500/10 text-rose-500' : 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300'}`}>
-                          Stock: {item.stock}
-                        </span>
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      {item.image && (
+                        <div className="w-10 h-10 rounded-md overflow-hidden shrink-0 border border-neutral-200 dark:border-white/[0.08] bg-neutral-100 dark:bg-white/[0.04]">
+                          <ProductThumb image={item.image} alt={item.name} imgClassName="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-semibold text-[13px] text-neutral-900 dark:text-white leading-snug truncate">
+                          {item.name}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[11px] font-mono text-neutral-500 truncate">
+                            {item.sku || 'No SKU'}
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${item.stock <= 0 ? 'bg-rose-500/10 text-rose-500' : 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300'}`}>
+                            Stock: {item.stock}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     {isAdmin && (

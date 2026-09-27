@@ -179,8 +179,8 @@ export function useUserModalData(options: UseUserModalDataOptions) {
             setLoading(false);
             return;
           }
-          if (formData.pin.length < 4 || formData.pin.length > 12) {
-            sonner.error('PIN must be between 4 and 12 digits');
+          if (formData.pin.length < 4 || formData.pin.length > 64) {
+            sonner.error('PIN/password must be between 4 and 64 characters');
             setLoading(false);
             return;
           }
@@ -223,8 +223,8 @@ export function useUserModalData(options: UseUserModalDataOptions) {
         sonner.success('User updated successfully');
       } else {
         // Create new user
-        if (!formData.pin || formData.pin.length < 4 || formData.pin.length > 12) {
-          sonner.error('PIN must be between 4 and 12 digits');
+        if (!formData.pin || formData.pin.length < 4 || formData.pin.length > 64) {
+          sonner.error('PIN/password must be between 4 and 64 characters');
           setLoading(false);
           return;
         }
