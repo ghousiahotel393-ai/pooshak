@@ -50,8 +50,8 @@ export function PurchaseOrderFormTable({
         </div>
       </div>
 
-      <div className="overflow-x-auto flex-1">
-        {activeList.length === 0 ? (
+      {activeList.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center p-6">
           <EmptyState
             icon={<PackageOpen className="h-8 w-8 text-neutral-400" />}
             title={poMode === 'manual' ? "No items selected yet" : "Inventory is healthy"}
@@ -60,93 +60,203 @@ export function PurchaseOrderFormTable({
               : "All items are currently above their defined reorder levels"}
             className="py-16"
           />
-        ) : (
-          <table className="w-full text-left border-collapse print:text-[10px]">
-            <thead>
-              <tr className="bg-neutral-50/50 dark:bg-white/[0.02] border-b border-neutral-200 dark:border-white/[0.08] h-8">
-                <th className="px-3 text-[11px] font-medium uppercase text-neutral-500">Item / SKU</th>
-                <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-center">Supplier</th>
-                <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-center">Current</th>
-                <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-center">Qty</th>
-                <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right">Cost ({getCurrencySymbol(appSettings.currency)})</th>
-                <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right">Retail ({getCurrencySymbol(appSettings.currency)})</th>
-                <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right">Total ({getCurrencySymbol(appSettings.currency)})</th>
-                {isAdmin && <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right print:hidden">Ops</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.04]">
-              {paginatedList.map(item => (
-                <tr key={item.id} className="h-11 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition-colors print:break-inside-avoid">
-                  <td className="px-3">
-                    <p className="font-medium text-neutral-900 dark:text-white text-[13px] leading-tight">{item.name}</p>
-                    <p className="text-[11px] font-mono text-neutral-500 mt-0.5">{item.sku || 'No SKU'}</p>
-                  </td>
-                  <td className="px-3 text-center">
-                    <input
-                      type="text"
-                      disabled={isGenerated}
-                      value={item.supplier || ''}
-                      onChange={(e) => updateItem(item.id, 'supplier', e.target.value)}
-                      placeholder="Supplier"
-                      className={`w-full max-w-[120px] h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-center rounded text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary ${isGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    />
-                  </td>
-                  <td className="px-3 text-center">
-                    <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium ${item.stock <= 0 ? 'bg-rose-500/10 text-rose-500' : 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300'}`}>
-                      {item.stock}
-                    </span>
-                  </td>
-                  <td className="px-3 text-center">
-                    <input
-                      type="number"
-                      value={item.neededQty}
-                      onChange={(e) => updateItem(item.id, 'neededQty', Number(e.target.value))}
-                      className="w-16 h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-center rounded font-mono text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
-                    />
-                  </td>
-                  <td className="px-3 text-right">
-                    <input
-                      type="number"
-                      value={item.cost}
-                      onChange={(e) => updateItem(item.id, 'cost', Number(e.target.value))}
-                      className="w-20 h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-right rounded font-mono text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
-                    />
-                  </td>
-                  <td className="px-3 text-right">
-                    <input
-                      type="number"
-                      value={item.price}
-                      onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
-                      className="w-20 h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-right rounded font-mono text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
-                    />
-                  </td>
-                  <td className="px-3 text-right text-[13px] font-mono tabular-nums font-semibold text-neutral-900 dark:text-white">
-                    {formatCurrency(Number(item.neededQty || 0) * Number(item.cost || 0), appSettings.currency)}
-                  </td>
-                  {isAdmin && (
-                    <td className="px-3 text-right print:hidden">
+        </div>
+      ) : (
+        <>
+          {/* Desktop Table View (lg and above, print-friendly) */}
+          <div className="hidden lg:block print:block overflow-x-auto flex-1">
+            <table className="w-full text-left border-collapse print:text-[10px]">
+              <thead>
+                <tr className="bg-neutral-50/50 dark:bg-white/[0.02] border-b border-neutral-200 dark:border-white/[0.08] h-8">
+                  <th className="px-3 text-[11px] font-medium uppercase text-neutral-500">Item / SKU</th>
+                  <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-center">Supplier</th>
+                  <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-center">Current</th>
+                  <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-center">Qty</th>
+                  <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right">Cost ({getCurrencySymbol(appSettings.currency)})</th>
+                  <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right">Retail ({getCurrencySymbol(appSettings.currency)})</th>
+                  <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right">Total ({getCurrencySymbol(appSettings.currency)})</th>
+                  {isAdmin && <th className="px-3 text-[11px] font-medium uppercase text-neutral-500 text-right print:hidden">Ops</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.04]">
+                {paginatedList.map(item => (
+                  <tr key={item.id} className="h-11 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition-colors print:break-inside-avoid">
+                    <td className="px-3">
+                      <p className="font-medium text-neutral-900 dark:text-white text-[13px] leading-tight">{item.name}</p>
+                      <p className="text-[11px] font-mono text-neutral-500 mt-0.5">{item.sku || 'No SKU'}</p>
+                    </td>
+                    <td className="px-3 text-center">
+                      <input
+                        type="text"
+                        disabled={isGenerated}
+                        value={item.supplier || ''}
+                        onChange={(e) => updateItem(item.id, 'supplier', e.target.value)}
+                        placeholder="Supplier"
+                        className={`w-full max-w-[120px] h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-center rounded text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary ${isGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      />
+                    </td>
+                    <td className="px-3 text-center">
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium ${item.stock <= 0 ? 'bg-rose-500/10 text-rose-500' : 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300'}`}>
+                        {item.stock}
+                      </span>
+                    </td>
+                    <td className="px-3 text-center">
+                      <input
+                        type="number"
+                        value={item.neededQty}
+                        onChange={(e) => updateItem(item.id, 'neededQty', Number(e.target.value))}
+                        className="w-16 h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-center rounded font-mono text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+                      />
+                    </td>
+                    <td className="px-3 text-right">
+                      <input
+                        type="number"
+                        value={item.cost}
+                        onChange={(e) => updateItem(item.id, 'cost', Number(e.target.value))}
+                        className="w-20 h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-right rounded font-mono text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+                      />
+                    </td>
+                    <td className="px-3 text-right">
+                      <input
+                        type="number"
+                        value={item.price}
+                        onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
+                        className="w-20 h-7 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-right rounded font-mono text-[12px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+                      />
+                    </td>
+                    <td className="px-3 text-right text-[13px] font-mono tabular-nums font-semibold text-neutral-900 dark:text-white">
+                      {formatCurrency(Number(item.neededQty || 0) * Number(item.cost || 0), appSettings.currency)}
+                    </td>
+                    {isAdmin && (
+                      <td className="px-3 text-right print:hidden">
+                        <Button
+                          onClick={() => poMode === 'manual' ? removeFromManualList(item.id) : handleRemoveFromPO(item.id, item.name)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 !p-0 text-neutral-400 hover:text-rose-500"
+                          title={poMode === 'manual' ? 'Remove from Selection' : 'Clear Target Level'}
+                          icon={<Trash2 className="h-3.5 w-3.5" />}
+                        />
+                      </td>
+                    )}
+                  </tr>
+                ))}
+
+                <tr className="font-semibold text-[13px] bg-neutral-50/50 dark:bg-white/[0.02] border-t border-neutral-200 dark:border-white/[0.08]">
+                  <td colSpan={6} className="text-right px-3 py-2 text-[11px] text-neutral-500 uppercase">Order Estimated Total:</td>
+                  <td className="text-right px-3 py-2 font-mono tabular-nums font-bold text-neutral-900 dark:text-white">{formatCurrency(estimatedCost, appSettings.currency)}</td>
+                  <td className="print:hidden"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Native Card View — Zero horizontal scroll, native-aligned */}
+          <div className="lg:hidden p-3 space-y-2.5 flex-1 print:hidden">
+            {paginatedList.map(item => {
+              const itemTotal = Number(item.neededQty || 0) * Number(item.cost || 0);
+              return (
+                <div
+                  key={item.id}
+                  className="p-3 rounded-md bg-white dark:bg-surface border border-neutral-200 dark:border-white/[0.08] shadow-none space-y-2.5"
+                >
+                  {/* Top Row: Name, SKU, Stock, Remove Button */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold text-[13px] text-neutral-900 dark:text-white leading-snug truncate">
+                        {item.name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[11px] font-mono text-neutral-500 truncate">
+                          {item.sku || 'No SKU'}
+                        </span>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-medium ${item.stock <= 0 ? 'bg-rose-500/10 text-rose-500' : 'bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300'}`}>
+                          Stock: {item.stock}
+                        </span>
+                      </div>
+                    </div>
+                    {isAdmin && (
                       <Button
                         onClick={() => poMode === 'manual' ? removeFromManualList(item.id) : handleRemoveFromPO(item.id, item.name)}
                         variant="ghost"
                         size="sm"
-                        className="h-7 w-7 !p-0 text-neutral-400 hover:text-rose-500"
+                        className="h-8 w-8 !p-0 text-neutral-400 hover:text-rose-500 shrink-0"
                         title={poMode === 'manual' ? 'Remove from Selection' : 'Clear Target Level'}
-                        icon={<Trash2 className="h-3.5 w-3.5" />}
+                        icon={<Trash2 className="h-4 w-4" />}
                       />
-                    </td>
-                  )}
-                </tr>
-              ))}
+                    )}
+                  </div>
 
-              <tr className="font-semibold text-[13px] bg-neutral-50/50 dark:bg-white/[0.02] border-t border-neutral-200 dark:border-white/[0.08]">
-                <td colSpan={6} className="text-right px-3 py-2 text-[11px] text-neutral-500 uppercase">Order Estimated Total:</td>
-                <td className="text-right px-3 py-2 font-mono tabular-nums font-bold text-neutral-900 dark:text-white">{formatCurrency(estimatedCost, appSettings.currency)}</td>
-                <td className="print:hidden"></td>
-              </tr>
-            </tbody>
-          </table>
-        )}
-      </div>
+                  {/* 3-Column Inputs Grid: Qty, Cost, Retail */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-neutral-100 dark:border-white/[0.04]">
+                    <div>
+                      <label className="block text-[10px] font-medium uppercase text-neutral-500 mb-1">
+                        Qty
+                      </label>
+                      <input
+                        type="number"
+                        value={item.neededQty}
+                        onChange={(e) => updateItem(item.id, 'neededQty', Number(e.target.value))}
+                        className="w-full h-8 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-center rounded font-mono text-[13px] font-semibold text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-medium uppercase text-neutral-500 mb-1 text-right truncate">
+                        Cost ({getCurrencySymbol(appSettings.currency)})
+                      </label>
+                      <input
+                        type="number"
+                        value={item.cost}
+                        onChange={(e) => updateItem(item.id, 'cost', Number(e.target.value))}
+                        className="w-full h-8 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-right rounded font-mono text-[13px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-medium uppercase text-neutral-500 mb-1 text-right truncate">
+                        Retail ({getCurrencySymbol(appSettings.currency)})
+                      </label>
+                      <input
+                        type="number"
+                        value={item.price}
+                        onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
+                        className="w-full h-8 px-2 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-right rounded font-mono text-[13px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Supplier & Total */}
+                  <div className="pt-2 border-t border-neutral-100 dark:border-white/[0.04] flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <input
+                        type="text"
+                        disabled={isGenerated}
+                        value={item.supplier || ''}
+                        onChange={(e) => updateItem(item.id, 'supplier', e.target.value)}
+                        placeholder="Supplier"
+                        className={`w-full max-w-[150px] h-7 px-2 bg-neutral-50 dark:bg-app border border-neutral-200 dark:border-white/[0.08] rounded text-[11px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary ${isGenerated ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      />
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] uppercase text-neutral-400 mr-1.5">Total:</span>
+                      <span className="text-[13px] font-mono tabular-nums font-bold text-neutral-900 dark:text-white">
+                        {formatCurrency(itemTotal, appSettings.currency)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Mobile Order Estimated Total Card */}
+            <div className="p-3 rounded-md bg-neutral-50/80 dark:bg-white/[0.02] border border-neutral-200 dark:border-white/[0.08] flex items-center justify-between">
+              <span className="text-[11px] uppercase font-semibold text-neutral-500">Order Estimated Total:</span>
+              <span className="text-sm font-mono tabular-nums font-bold text-neutral-900 dark:text-white">
+                {formatCurrency(estimatedCost, appSettings.currency)}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="print-hide px-3 py-2 bg-neutral-50/50 dark:bg-white/[0.02] border-t border-neutral-200 dark:border-white/[0.08] flex items-center justify-between mt-auto">
         <p className="text-[11px] font-mono text-neutral-500">

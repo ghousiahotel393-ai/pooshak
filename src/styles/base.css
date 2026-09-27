@@ -109,7 +109,9 @@
 
   /* Contain scroll within each scrollable region — never leak to body/viewport */
   .overflow-y-auto,
-  .overflow-y-scroll,
+  .overflow-y-scroll {
+    overscroll-behavior: contain;
+  }
 
   /* Force disable zooming on all inputs for mobile to prevent automatic zoom focus */
   @media screen and (max-width: 768px) {

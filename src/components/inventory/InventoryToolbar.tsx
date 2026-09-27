@@ -134,13 +134,13 @@ export function InventoryToolbar({
 
       {/* Bulk Actions Bar (Theme-adaptive for Light and Dark modes) */}
       {canManageStock && selectedCount > 0 && (
-        <div className="flex items-center gap-2 mt-2.5 px-3 py-1.5 bg-neutral-100 dark:bg-surface border border-neutral-200 dark:border-white/[0.08] text-neutral-900 dark:text-white rounded-md overflow-x-auto scrollbar-hide shadow-none">
+        <div className="flex flex-wrap items-center gap-2 mt-2.5 px-3 py-1.5 bg-neutral-100 dark:bg-surface border border-neutral-200 dark:border-white/[0.08] text-neutral-900 dark:text-white rounded-md shadow-none">
           <div className="flex items-center gap-1.5 pr-3 border-r border-neutral-200 dark:border-white/10 shrink-0">
             <span className="text-[12px] font-mono tabular-nums font-bold text-neutral-900 dark:text-white leading-none">{selectedCount}</span>
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">Selected</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="ghost" size="sm" onClick={onBulkEdit} className="!text-neutral-700 dark:!text-neutral-200 hover:!bg-neutral-200/60 dark:hover:!bg-white/10">
               <Layers className="h-3.5 w-3.5" /> <span>Bulk Edit</span>
             </Button>

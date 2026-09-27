@@ -16,7 +16,8 @@ export function SelectedItemsGrid({ selectedItems, updateItem, removeItem }: Pro
         {'Staging Matrix'.replace('{count}', selectedItems.length.toString())}
       </h3>
       <div className="bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] overflow-hidden">
-        <div className="overflow-x-auto custom-scrollbar">
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto custom-scrollbar">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-neutral-50 dark:bg-white/[0.02] border-b border-neutral-200 dark:border-white/[0.08]">
@@ -98,6 +99,93 @@ export function SelectedItemsGrid({ selectedItems, updateItem, removeItem }: Pro
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Native Card View (Zero horizontal scroll) */}
+        <div className="lg:hidden p-3 space-y-2.5">
+          {selectedItems.map(item => (
+            <div
+              key={item.id}
+              className="p-3 rounded-md bg-white dark:bg-surface border border-neutral-200 dark:border-white/[0.08] shadow-none space-y-2.5"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold text-neutral-900 dark:text-white leading-tight truncate">{item.name}</p>
+                  <p className="text-[10.5px] font-mono text-neutral-400 mt-0.5">{item.sku || 'No SKU'}</p>
+                </div>
+                <Button
+                  onClick={() => removeItem(item.id)}
+                  variant="ghost"
+                  className="h-7 w-7 !p-0 !text-neutral-400 hover:!text-rose-500 rounded shrink-0"
+                  icon={<Trash2 className="h-3.5 w-3.5" />}
+                />
+              </div>
+
+              {/* Variant Selector (if any) */}
+              {(item.variantData || []).some((vd: any) => vd.trackInventory !== false) && (
+                <div className="pt-2 border-t border-neutral-100 dark:border-white/[0.04]">
+                  <SearchableSelect
+                    options={[
+                      { id: '__general__', label: 'GENERAL STOCK' },
+                      ...(item.variantData || []).map((vd: any) => ({
+                        id: vd.id,
+                        label: `${vd.option1 || ''}${vd.option2 ? ` / ${vd.option2}` : ''}`,
+                        sublabel: vd.stock !== undefined ? `Stock: ${vd.stock}` : undefined
+                      }))
+                    ]}
+                    value={item.variantId || '__general__'}
+                    onChange={(val) => {
+                      const vd = (item.variantData || []).find((v: any) => v.id === val);
+                      updateItem(item.id, 'variantId', val === '__general__' ? undefined : val);
+                      updateItem(item.id, 'variantLabel', val === '__general__' ? undefined : (vd ? `${vd.option1 || ''}${vd.option2 ? ` / ${vd.option2}` : ''}` : undefined));
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Inputs: Qty, Cost, Retail */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-neutral-100 dark:border-white/[0.04]">
+                <div>
+                  <label className="block text-[10px] font-medium uppercase text-neutral-500 mb-1">Qty</label>
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
+                    className="w-full h-8 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 text-center text-[13px] font-mono font-bold text-emerald-600 dark:text-emerald-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium uppercase text-neutral-500 mb-1 text-right">Cost</label>
+                  <input
+                    type="number"
+                    value={item.costPrice}
+                    onChange={(e) => updateItem(item.id, 'costPrice', Number(e.target.value))}
+                    className="w-full h-8 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] rounded px-2 text-right text-[13px] font-mono text-neutral-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium uppercase text-neutral-500 mb-1 text-right">Retail</label>
+                  <input
+                    type="number"
+                    value={item.retailPrice}
+                    onChange={(e) => updateItem(item.id, 'retailPrice', Number(e.target.value))}
+                    className="w-full h-8 bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] rounded px-2 text-right text-[13px] font-mono text-neutral-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Supplier Input */}
+              <div className="pt-2 border-t border-neutral-100 dark:border-white/[0.04]">
+                <input
+                  type="text"
+                  value={item.batchSupplier || ''}
+                  onChange={(e) => updateItem(item.id, 'batchSupplier', e.target.value)}
+                  className="w-full h-7 bg-neutral-50 dark:bg-app border border-neutral-200 dark:border-white/[0.08] rounded px-2 text-[11px] font-medium text-neutral-900 dark:text-white focus:outline-none"
+                  placeholder="Supplier"
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

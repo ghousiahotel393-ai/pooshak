@@ -719,8 +719,11 @@ To guarantee a true native mobile app feel across all smartphone and tablet scre
    - **Dynamic Visibility:** Rendered only when items exist (`appCart.length > 0`). Pitch-black styling in light mode is strictly banned.
 
 8. **NATIVE CARD STYLE ALWAYS FOR MOBILE DOMAINS (MANDATORY):**
-   - **Zero Desktop Tables on Mobile:** Under no circumstances may an HTML `<table>` with horizontal scrolling be rendered on mobile viewports (`< lg`).
-   - Every view (Users/Staff, Customers, Suppliers, Expenses, Discounts, Salesmen, Transactions, Inventory) MUST ALWAYS render native card layouts on mobile (`lg:hidden`). All AI agents and engineers must enforce this rule without exception.
+   - **Zero Desktop Tables on Mobile:** Under no circumstances may an HTML `<table>` with horizontal scrolling (`overflow-x-auto`) be rendered on mobile viewports (`< lg`).
+   - Every view (Purchase Orders, Restock / Stock-In Matrix, Users/Staff, Customers, Customer Ledger, Suppliers, Expenses, Discounts, Salesmen, Transactions, Inventory) MUST ALWAYS render native card layouts on mobile (`lg:hidden`). All AI agents and engineers must enforce this rule without exception.
+
+9. **ABSOLUTE PROHIBITION OF HORIZONTAL WOBBLE / SCROLL ON MOBILE APP / PWA:**
+   - **Zero Horizontal Motion:** Mobile apps must never wobble or scroll left-right. Any multi-column data view (e.g. Purchase Orders, Restock items) must fit 100% within the screen width (`w-full`). Multi-input rows (Qty, Cost, Retail) must be structured in a compact 3-column grid (`grid grid-cols-3 gap-2`) with native touch targets. Bare `overflow-x-auto` tables on mobile are strictly banned.
 
 ---
 
