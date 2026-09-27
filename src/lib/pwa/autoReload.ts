@@ -9,8 +9,19 @@
  * shells are prohibited: when a new SW takes control we reload the page ONCE
  * (guarded so it can never loop).
  */
+import { tryChunkReload } from './chunkReload';
+
 export function initPwaAutoReload(): void {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+  if (typeof window === 'undefined') return;
+
+  // Vite fires `vite:preloadError` when a dynamically-imported chunk fails to preload —
+  // the classic "Importing a module script failed" after a deploy rotated the hashed files.
+  // Self-heal with one guarded reload (see chunkReload) so the fresh manifest loads.
+  window.addEventListener('vite:preloadError', (event) => {
+    if (tryChunkReload()) event.preventDefault();
+  });
+
+  if (!('serviceWorker' in navigator)) return;
 
   // Was the page already controlled by a SW at load time? If yes, a later
   // controllerchange means an UPDATE replaced it → reload to pick up new assets.

@@ -1,17 +1,33 @@
 import React from 'react';
+import { isChunkLoadError, tryChunkReload } from '../../lib/pwa/chunkReload';
 
-interface State { hasError: boolean; error?: Error; info?: string; }
+interface State { hasError: boolean; error?: Error; info?: string; recovering?: boolean; }
 
 export class ErrorBoundary extends React.Component<{ children: React.ReactNode; fallback?: React.ReactNode }, State> {
   state: State = { hasError: false };
-  static getDerivedStateFromError(error: Error) { return { hasError: true, error }; }
+  static getDerivedStateFromError(error: Error) {
+    // Stale-chunk failures self-heal via a guarded reload — render a neutral placeholder
+    // (not the red error screen) while we decide/reload.
+    return { hasError: true, error, recovering: isChunkLoadError(error) };
+  }
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info?.componentStack);
-    this.setState({ info: info?.componentStack || '' });
+    // Safety net: if a stale-chunk error bubbled all the way here (not caught by
+    // lazyWithRetry), attempt one guarded silent reload before showing any fallback.
+    if (isChunkLoadError(error) && tryChunkReload()) return;
+    this.setState({ info: info?.componentStack || '', recovering: false });
   }
-  private reset = () => this.setState({ hasError: false, error: undefined, info: undefined });
+  private reset = () => this.setState({ hasError: false, error: undefined, info: undefined, recovering: false });
   render() {
     if (this.state.hasError) {
+      // A chunk-reload is in flight (or being decided) — don't flash the red screen.
+      if (this.state.recovering) {
+        return (
+          <div className="flex items-center justify-center min-h-[240px] p-6">
+            <div className="h-6 w-6 rounded-full border-2 border-neutral-300 border-t-primary animate-spin" />
+          </div>
+        );
+      }
       if (this.props.fallback) return this.props.fallback;
       const msg = this.state.error?.message || String(this.state.error || 'Unknown error');
       const stack = `${this.state.error?.stack || ''}\n${this.state.info || ''}`.trim();
