@@ -86,7 +86,6 @@ export function ExportButton({
   }, []);
 
   const run = async (format: ExportFormat) => {
-    setIsOpen(false);
     if (busy) return;
 
     let rows = data;
@@ -121,7 +120,7 @@ export function ExportButton({
         if (res.method === 'failed') {
           sonner.error(`Print failed — ${res.error || 'unable to open print view'}`);
         } else if (res.method === 'pdf-fallback') {
-          sonner.success(`${title} saved as PDF (print unavailable on this device)`);
+          sonner.success(`${title} ready to print (AirPrint / Save)`);
         } else {
           sonner.success(`${title} sent to print`);
         }
@@ -155,6 +154,7 @@ export function ExportButton({
       sonner.error(`Export failed — ${(error as Error)?.message || 'unknown error'}`);
     } finally {
       setBusy(null);
+      setIsOpen(false);
     }
   };
 

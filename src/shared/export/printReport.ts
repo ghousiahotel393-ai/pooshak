@@ -12,7 +12,27 @@ function isCapacitorNative(): boolean {
   return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
 }
 
+function isMobile(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 1 && /Macintosh/i.test(navigator.userAgent)) ||
+    (typeof window.innerWidth === 'number' && window.innerWidth < 768);
+}
+
 export async function printReport(config: ReportExportConfig): Promise<PrintResult> {
+  // Mobile browsers / native apps: iframe & popup window.print() are blocked or non-functional.
+  // Generate the PDF instead so mobile users get the native OS Print (AirPrint) & Share dialog.
+  if (isMobile() || isCapacitorNative()) {
+    try {
+      const { exportToPDF } = await import('./exportEngine');
+      const res = await exportToPDF(config);
+      if (res.method === 'failed') return { method: 'failed', error: res.error };
+      return { method: 'pdf-fallback' };
+    } catch (e: any) {
+      return { method: 'failed', error: e?.message || 'Print unavailable' };
+    }
+  }
+
   const brand = config.brand || DEFAULT_BRAND;
   const currencySymbol = config.currencySymbol || '';
   const paperSize = config.paperSize || 'A4';

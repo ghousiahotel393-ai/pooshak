@@ -8,6 +8,7 @@ import {
   previewSpreadsheet, importSpreadsheet,
 } from '../../../lib/backup/backupService';
 import type { ImportPreviewRow } from '../../../lib/backup/importEngine';
+import { saveFile } from '../../../shared/export/saveFile';
 import { sonner } from '../../../lib/sonner';
 
 export function BackupRestoreTab() {
@@ -31,8 +32,10 @@ export function BackupRestoreTab() {
     try {
       sonner.loading('Creating encrypted backup...');
       const zpos = await exportEncrypted(backupPassword);
-      downloadBlob(new Blob([zpos], { type: 'application/json' }), `zaynahs-backup-${new Date().toISOString().slice(0, 10)}.zpos`);
+      const saved = await saveFile(new Blob([zpos], { type: 'application/json' }), `zaynahs-backup-${new Date().toISOString().slice(0, 10)}.zpos`, 'application/json');
       sonner.dismissAll();
+      if (saved.method === 'failed') { sonner.error(`Backup save failed — ${saved.error || 'could not save file'}`); return; }
+      if (saved.method === 'cancelled') { sonner.info('Backup cancelled'); return; }
       sonner.success('Encrypted backup (.zpos) saved.');
       setBackupPassword('');
     } catch (err: any) {
@@ -48,8 +51,10 @@ export function BackupRestoreTab() {
     try {
       sonner.loading('Building Excel workbook...');
       const blob = await exportExcel();
-      downloadBlob(blob, `zaynahs-export-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      const saved = await saveFile(blob, `zaynahs-export-${new Date().toISOString().slice(0, 10)}.xlsx`, blob.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       sonner.dismissAll();
+      if (saved.method === 'failed') { sonner.error(`Export save failed — ${saved.error || 'could not save file'}`); return; }
+      if (saved.method === 'cancelled') { sonner.info('Export cancelled'); return; }
       sonner.success('Excel workbook saved (sensitive data excluded).');
     } catch (err: any) {
       sonner.dismissAll();
@@ -59,13 +64,12 @@ export function BackupRestoreTab() {
     }
   };
 
-  function downloadBlob(blob: Blob, filename: string) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  function downloadBlob(_blob: Blob, _filename: string) {
+    // Deprecated — file delivery now goes through the cross-platform saveFile() so it works
+    // on native app + PWA (a raw anchor download is a silent no-op there). Kept as a no-op
+    // guard in case of any stray caller.
   }
+  void downloadBlob;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPreviewRows(null); setFiles(null); setSheetBuffer(null);

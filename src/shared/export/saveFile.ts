@@ -59,6 +59,7 @@ function anchorDownload(blob: Blob, filename: string): SaveFileResult {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.target = '_blank';
   a.rel = 'noopener';
   document.body.appendChild(a);
   a.click();
@@ -99,21 +100,52 @@ async function saveViaCapacitor(blob: Blob, filename: string): Promise<SaveFileR
 }
 
 async function saveViaWebShare(blob: Blob, filename: string, mime: string): Promise<SaveFileResult | null> {
-  const nav = navigator as any;
-  if (typeof File === 'undefined' || typeof nav.canShare !== 'function' || typeof nav.share !== 'function') {
+  const nav = typeof navigator !== 'undefined' ? (navigator as any) : null;
+  if (!nav || typeof File === 'undefined' || typeof nav.canShare !== 'function' || typeof nav.share !== 'function') {
     return null;
   }
-  const file = new File([blob], filename, { type: mime });
-  if (!nav.canShare({ files: [file] })) return null;
+
+  // 1. Try sharing with the file's primary mime type
+  let file = new File([blob], filename, { type: mime });
+  let canShare = false;
+  try {
+    canShare = Boolean(nav.canShare({ files: [file] }));
+  } catch {
+    canShare = false;
+  }
+
+  // 2. If rejected (common on iOS WebKit for .xlsx / .csv), try generic binary mime
+  if (!canShare && mime !== 'application/octet-stream') {
+    try {
+      file = new File([blob], filename, { type: 'application/octet-stream' });
+      canShare = Boolean(nav.canShare({ files: [file] }));
+    } catch {
+      canShare = false;
+    }
+  }
+
+  // 3. If canShare still false, try without explicit mime type
+  if (!canShare) {
+    try {
+      file = new File([blob], filename);
+      canShare = Boolean(nav.canShare({ files: [file] }));
+    } catch {
+      canShare = false;
+    }
+  }
+
+  if (!canShare) return null;
+
   try {
     await nav.share({ files: [file], title: filename });
     return { method: 'web-share' };
   } catch (e: any) {
-    // AbortError => user cancelled the share sheet.
+    // AbortError => user cancelled / dismissed the share sheet
     if (e && (e.name === 'AbortError' || /abort|cancel/i.test(String(e?.message)))) {
       return { method: 'cancelled' };
     }
-    return null; // let caller fall back to anchor download
+    console.warn('[saveFile] Web Share failed, falling back:', e);
+    return null;
   }
 }
 
@@ -132,13 +164,11 @@ export async function saveFile(blob: Blob, filename: string, mime = 'application
       }
     }
 
-    // Installed/standalone PWA (esp. iOS) — anchor download is unreliable there.
-    if (isStandalonePWA()) {
-      const shared = await saveViaWebShare(blob, filename, mime);
-      if (shared) return shared;
-    }
+    // Try Web Share on ANY platform where navigator.canShare is supported (Mobile Safari, Android Chrome, PWA)
+    const shared = await saveViaWebShare(blob, filename, mime);
+    if (shared) return shared;
 
-    // Desktop browser + Electron: reliable.
+    // Desktop browser / Electron / fallback: standard anchor download
     return anchorDownload(blob, filename);
   } catch (e: any) {
     console.error('[saveFile] failed:', e);

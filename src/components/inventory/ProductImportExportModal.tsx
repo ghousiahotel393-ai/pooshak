@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Download, Upload, FileArchive, FileJson, Sheet, CheckCircle2, Loader2 } from 'lucide-react';
 import { Modal, Button } from '../../shared/ui';
 import { exportProductsCatalog, importProductsCatalog } from '../../lib/services/products/productExportImport';
+import { saveFile } from '../../shared/export/saveFile';
 import { useProductsStore } from '../../stores';
 import { sonner } from '../../lib/sonner';
 
@@ -36,18 +37,19 @@ export function ProductImportExportModal({ open, onClose, selectedProductIds = [
         format: withImages ? 'zip' : format,
       });
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Cross-platform save (Capacitor/Web Share on native+PWA, anchor download on desktop)
+      // so the catalog export actually produces a file everywhere, not a silent no-op.
+      const res = await saveFile(blob, filename, blob.type || 'application/octet-stream');
 
       sonner.dismissAll();
-      sonner.success(`Exported ${count} products successfully!`);
-      onClose();
+      if (res.method === 'failed') {
+        sonner.error(`Export failed — ${res.error || 'could not save file'}`);
+      } else if (res.method === 'cancelled') {
+        sonner.info('Export cancelled');
+      } else {
+        sonner.success(`Exported ${count} products successfully!`);
+        onClose();
+      }
     } catch (err: any) {
       sonner.dismissAll();
       sonner.error(err.message || 'Export failed');
@@ -67,8 +69,9 @@ export function ProductImportExportModal({ open, onClose, selectedProductIds = [
       sonner.loading('Reading & importing products...');
       const res = await importProductsCatalog(importFile, { skipDuplicates });
       
-      // Reload products in Zustand store
-      await useProductsStore.getState().loadProducts();
+      // Reload products in Zustand store (method is loadProductsFromDb — calling the wrong
+      // name here previously threw AFTER a successful import, so it looked like import failed).
+      await useProductsStore.getState().loadProductsFromDb();
       if (onImportComplete) onImportComplete();
 
       sonner.dismissAll();
