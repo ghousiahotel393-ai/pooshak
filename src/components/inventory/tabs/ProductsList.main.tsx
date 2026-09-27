@@ -151,6 +151,7 @@ export function ProductsList({
     selectedProductIds,
     setSelectedProductIds,
     filteredProducts,
+    paginatedProducts,
     setShowBarcodeGenerator,
     setBarcodeProducts
   });

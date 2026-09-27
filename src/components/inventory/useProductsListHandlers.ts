@@ -8,6 +8,7 @@ interface UseProductsListHandlersArgs {
   selectedProductIds: string[];
   setSelectedProductIds: React.Dispatch<React.SetStateAction<string[]>>;
   filteredProducts: any[];
+  paginatedProducts?: any[];
   fileInputRef?: React.RefObject<HTMLInputElement>;
   setShowBarcodeGenerator: (v: boolean) => void;
   setBarcodeProducts: React.Dispatch<React.SetStateAction<any[]>>;
@@ -17,6 +18,7 @@ export function useProductsListHandlers({
   selectedProductIds,
   setSelectedProductIds,
   filteredProducts,
+  paginatedProducts,
   setShowBarcodeGenerator: _setShowBarcodeGenerator,
   setBarcodeProducts: _setBarcodeProducts
 }: UseProductsListHandlersArgs) {
@@ -36,12 +38,17 @@ export function useProductsListHandlers({
   };
 
   const handleSelectAll = () => {
-    // Click-to-toggle: if everything is already selected, clear; otherwise select all.
-    setSelectedProductIds(prev =>
-      filteredProducts.length > 0 && prev.length === filteredProducts.length
-        ? []
-        : filteredProducts.map(p => p.id)
-    );
+    // Select Filtered: toggle selection of filtered items on current page (paginatedProducts)
+    const target = paginatedProducts && paginatedProducts.length > 0 ? paginatedProducts : filteredProducts;
+    if (target.length === 0) return;
+    const targetIds = target.map(p => p.id);
+    setSelectedProductIds(prev => {
+      const allSelected = targetIds.every(id => prev.includes(id));
+      if (allSelected) {
+        return prev.filter(id => !targetIds.includes(id));
+      }
+      return Array.from(new Set([...prev, ...targetIds]));
+    });
   };
 
   const handleSelectProduct = (id: string) => {

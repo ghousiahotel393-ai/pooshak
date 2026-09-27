@@ -64,6 +64,9 @@ export function InventoryTable({
   // RBAC: cost/profit figures are visible to admin|manager only (view_profit)
   const showCost = isAdmin || can(profile?.role, 'view_profit');
 
+  const isAllCurrentPageSelected = paginatedProducts.length > 0 && paginatedProducts.every(p => selectedProductIds.includes(p.id));
+  const isSomeCurrentPageSelected = !isAllCurrentPageSelected && paginatedProducts.some(p => selectedProductIds.includes(p.id));
+
   return (
     <div className="bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] overflow-hidden shadow-none flex flex-col sm:min-h-[calc(100vh-320px)] min-h-[280px]">
       {/* Desktop Table View */}
@@ -71,10 +74,10 @@ export function InventoryTable({
         <table className="w-full text-left border-collapse table-fixed">
           <thead>
             <tr className="bg-neutral-50/50 dark:bg-white/[0.02] border-b border-neutral-200 dark:border-white/[0.08]">
-              <th className="p-4 w-12 cursor-pointer" onClick={handleSelectAll}>
-                {selectedProductIds.length > 0 && selectedProductIds.length === filteredProducts.length
+              <th className="p-4 w-12 cursor-pointer" onClick={handleSelectAll} title="Select Filtered">
+                {isAllCurrentPageSelected
                   ? <CheckSquare className="h-5 w-5 text-primary" />
-                  : selectedProductIds.length > 0
+                  : isSomeCurrentPageSelected
                     ? <MinusSquare className="h-5 w-5 text-emerald-400" />
                     : <Square className="h-5 w-5 text-gray-600" />}
               </th>
@@ -180,21 +183,22 @@ export function InventoryTable({
 
       {/* Mobile Card View (Expert Density) */}
       <div className="lg:hidden p-3 sm:p-4 flex-1">
-        {/* Select All on Mobile */}
+        {/* Select Filtered on Mobile */}
         {paginatedProducts.length > 0 && (
           <div className="flex items-center justify-between mb-3 bg-neutral-50/50 dark:bg-white/[0.02] p-2 rounded">
-            <Button
-              variant="ghost"
+            <button
+              type="button"
+              data-no-tap-expand="true"
               onClick={handleSelectAll}
-              className="!min-h-0 !p-0 !bg-transparent !text-[11px] font-medium !text-neutral-600 dark:!text-neutral-400"
+              className="inline-flex items-center gap-1.5 p-0 bg-transparent border-0 text-[11px] font-medium text-neutral-600 dark:text-neutral-400 cursor-pointer focus:outline-none"
             >
-              {selectedProductIds.length > 0 && selectedProductIds.length === filteredProducts.length
+              {isAllCurrentPageSelected
                 ? <CheckSquare className="h-4 w-4 text-primary" />
-                : selectedProductIds.length > 0
+                : isSomeCurrentPageSelected
                   ? <MinusSquare className="h-4 w-4 text-emerald-400" />
                   : <Square className="h-4 w-4 text-neutral-400" />}
-              Select All
-            </Button>
+              Select Filtered
+            </button>
             <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">{selectedProductIds.length} Selected</span>
           </div>
         )}
@@ -208,15 +212,16 @@ export function InventoryTable({
                 onClick={() => handleEditProduct(product)}
                 className={`relative flex flex-col p-2.5 sm:p-4 rounded-md bg-white dark:bg-surface border border-neutral-200 dark:border-white/[0.08] shadow-none transition-colors group ${selectedProductIds.includes(product.id) ? 'border-primary bg-primary/5' : ''}`}
               >
-                {/* Selection Toggle — pinned top-LEFT to match desktop's leftmost checkbox column
-                    (consistent corner across breakpoints; never centered). */}
-                <Button
-                  variant="ghost"
+                {/* Selection Toggle — pinned top-LEFT to match desktop's leftmost checkbox column (1 side, never centered) */}
+                <button
+                  type="button"
+                  data-no-tap-expand="true"
                   onClick={(e) => { e.stopPropagation(); handleSelectProduct(product.id); }}
-                  className="absolute top-1.5 left-1.5 z-20 !h-auto !min-h-0 !p-0 !bg-transparent"
+                  className="!absolute top-2 left-2 z-20 p-0 m-0 bg-transparent border-0 cursor-pointer focus:outline-none"
+                  aria-label="Select product"
                 >
                   {selectedProductIds.includes(product.id) ? (
-                    <div className="bg-primary rounded p-1">
+                    <div className="bg-primary rounded p-1 shadow-sm">
                       <CheckSquare className="h-3.5 w-3.5 text-white" />
                     </div>
                   ) : (
@@ -224,7 +229,7 @@ export function InventoryTable({
                       <Square className="h-3.5 w-3.5 text-neutral-400" />
                     </div>
                   )}
-                </Button>
+                </button>
 
                 <div className="flex flex-col gap-2.5">
                   <div className="aspect-square w-full bg-neutral-100 dark:bg-neutral-800 rounded flex items-center justify-center overflow-hidden border border-neutral-200 dark:border-white/[0.08] flex-shrink-0 relative">
