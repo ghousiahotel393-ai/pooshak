@@ -164,10 +164,12 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
           </div>
         </div>
 
-        {/* PIN Indicators & Caps Lock Warning */}
+        {/* Credential entry & Caps Lock Warning */}
         <div className="flex flex-col items-center justify-center my-3 gap-1.5 w-full">
-          {/* Password field — accepts full alphanumeric staff credentials (verified against
-              the real synced staff_users.password_hash). The keypad below is a numeric shortcut. */}
+          {/* Flexible password field — accepts full alphanumeric staff credentials of any
+              length (verified against the synced staff_users.password_hash). No fixed-length
+              dot indicators: the input itself is the entry area and grows/scrolls naturally.
+              The keypad below is a numeric shortcut that writes into this same field. */}
           <input
             type="password"
             inputMode="text"
@@ -180,23 +182,8 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
             disabled={lockoutSecs > 0 || isSubmitting}
             placeholder="Password or PIN"
             aria-label="Password or PIN"
-            className="w-full h-9 px-3 mb-1 text-center text-[14px] tracking-widest font-mono rounded bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white focus:outline-none focus:border-primary"
+            className="w-full h-10 px-3 text-center text-[15px] tracking-widest font-mono rounded bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/[0.08] text-gray-900 dark:text-white focus:outline-none focus:border-primary"
           />
-          <div className="flex justify-center items-center gap-2 flex-wrap max-w-[280px]">
-            {Array.from({ length: Math.max(pin.length, 6) }).map((_, idx) => {
-              const hasDigit = idx < pin.length;
-              return (
-                <div
-                  key={idx}
-                  className={`w-3.5 h-3.5 rounded-full border transition-all duration-100 ${
-                    hasDigit
-                      ? 'bg-primary border-primary scale-110'
-                      : 'bg-transparent border-gray-300 dark:border-white/20'
-                  }`}
-                />
-              );
-            })}
-          </div>
           <CapsLockIndicator variant="inline" />
         </div>
 
