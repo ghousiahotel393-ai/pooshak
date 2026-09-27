@@ -8,6 +8,7 @@ import { BarcodeGenerator, clearPersistedBarcodeState } from '../BarcodeGenerato
 import { sonner } from '../../../lib/sonner';
 import { useSettingsStore } from '../../../stores';
 import { useBarcodeScanner } from '../../../hooks/useBarcodeScanner';
+import { CameraScanner } from '../../../shared/ui/CameraScanner';
 import { normalizeBarcodeValue } from '../../../utils/barcode';
 import { formatCurrency } from '../../../lib/currencies';
 import { Package, AlertTriangle, TrendingUp, TrendingDown, ChevronLeft } from 'lucide-react';
@@ -58,7 +59,7 @@ export function ProductsList({
 
   const [barcodeProducts, setBarcodeProducts] = useState<Product[]>([]);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
-  const [_showScannerInInventory, setShowScannerInInventory] = useState(false);
+  const [showScannerInInventory, setShowScannerInInventory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [ITEMS_PER_PAGE, setPageSize] = useState(25);
 
@@ -272,6 +273,17 @@ export function ProductsList({
         onClose={() => setShowImportExportModal(false)}
         selectedProductIds={selectedProductIds}
       />
+      {showScannerInInventory && (
+        <CameraScanner
+          title="Scan Barcode / QR / IMEI"
+          onScan={(code) => {
+            const term = (code || '').trim();
+            if (term) { setSearchTerm(term); setCurrentPage(1); }
+            setShowScannerInInventory(false);
+          }}
+          onClose={() => setShowScannerInInventory(false)}
+        />
+      )}
     </>
   );
 }
