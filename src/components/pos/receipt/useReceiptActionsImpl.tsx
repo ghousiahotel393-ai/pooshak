@@ -236,13 +236,13 @@ export function useReceiptActions(
           return;
         }
 
-        const fileName = `Receipt_${sale.invoiceNumber}.jpg`;
-        const file = new File([blob], fileName, { type: 'image/jpeg' });
+        const fileName = `Receipt_${sale.invoiceNumber || 'receipt'}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
-              title: `Receipt ${sale.invoiceNumber}`,
+              title: `Receipt ${sale.invoiceNumber || ''}`,
               files: [file],
             });
           } catch (shareErr: any) {
@@ -254,7 +254,7 @@ export function useReceiptActions(
         } else {
           triggerDownload(blob, fileName);
         }
-      }, 'image/jpeg', 0.8);
+      }, 'image/png');
     } catch (err) {
       setIsSharing(false);
       console.error('Capture failed:', err);

@@ -67,27 +67,56 @@ export function buildPrintHtml(
 </html>`;
 }
 
+const logoDataUrlCache = new Map<string, string>();
+
 /**
- * Make the receipt fully local & offline-safe for html2canvas capture.
- *
- * The receipt logo can be a remote (http/https) Supabase Storage / Pexels URL. When html2canvas
- * re-loads such an image during capture it fires a real network request that FAILS offline (or on
- * CORS-less objects / expired signed URLs) — surfacing as the "network error" and a broken image
- * in the shared receipt. Here we, inside the cloned document only:
- *   - try to inline each remote <img> as a data URL (works online / when CORS is present), else
- *   - drop the <img> entirely so capture never makes a failing request and never emits a broken
- *     image. The rest of the receipt (barcode/QR are local inline SVG) still renders perfectly.
- * data: and blob: images are already local and left untouched.
+ * Pre-inlines any remote <img> elements in receiptEl into memory data URLs BEFORE html2canvas runs.
+ * 1. Checks in-memory cache (0ms).
+ * 2. Grabs pixel data directly from already-loaded <img> DOM element via canvas snapshot (0ms, zero network).
+ * 3. Falls back to a fast time-boxed fetch (800ms) only if element canvas is tainted.
+ * Returns a cleanup function that restores the original src attributes on the live receipt.
  */
-async function inlineRemoteImages(root: Document | HTMLElement): Promise<void> {
-  const imgs = Array.from(root.querySelectorAll('img'));
+export async function inlineReceiptImagesLocally(receiptEl: HTMLElement): Promise<() => void> {
+  const imgs = Array.from(receiptEl.querySelectorAll('img'));
+  const restorations: Array<{ el: HTMLImageElement; origSrc: string }> = [];
+
   await Promise.all(imgs.map(async (img) => {
     const src = img.getAttribute('src') || '';
     if (!src || src.startsWith('data:') || src.startsWith('blob:')) return;
+
+    // 1. In-memory cache hit
+    if (logoDataUrlCache.has(src)) {
+      restorations.push({ el: img, origSrc: src });
+      img.setAttribute('src', logoDataUrlCache.get(src)!);
+      return;
+    }
+
+    // 2. Direct DOM canvas snapshot from already-loaded image
+    try {
+      if (img.complete && img.naturalWidth > 0) {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        const ctx = c.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = c.toDataURL('image/png');
+          logoDataUrlCache.set(src, dataUrl);
+          restorations.push({ el: img, origSrc: src });
+          img.setAttribute('src', dataUrl);
+          return;
+        }
+      }
+    } catch {
+      // Canvas tainted (CORS restriction) — fall back to fast network fetch below
+    }
+
     if (!/^https?:\/\//i.test(src)) return;
+
+    // 3. Fast time-boxed network fetch (max 800ms) so capture never hangs
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 3000);
+      const timeout = setTimeout(() => controller.abort(), 800);
       const res = await fetch(src, { signal: controller.signal, cache: 'force-cache' });
       clearTimeout(timeout);
       if (!res.ok) throw new Error(`status ${res.status}`);
@@ -98,30 +127,40 @@ async function inlineRemoteImages(root: Document | HTMLElement): Promise<void> {
         reader.onerror = () => reject(reader.error);
         reader.readAsDataURL(blob);
       });
+      logoDataUrlCache.set(src, dataUrl);
+      restorations.push({ el: img, origSrc: src });
       img.setAttribute('src', dataUrl);
     } catch {
-      // Offline / CORS / expired URL: remove so capture stays clean and never errors.
-      img.remove();
+      // Offline / timeout: leave src alone, capture continues cleanly without error
     }
   }));
+
+  return () => {
+    restorations.forEach(({ el, origSrc }) => {
+      el.setAttribute('src', origSrc);
+    });
+  };
 }
 
 export async function captureReceiptCanvas(receiptEl: HTMLElement): Promise<HTMLCanvasElement> {
-  return html2canvas(receiptEl, {
-    scale: 2,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false,
-    imageTimeout: 3000,
-    width: receiptEl.offsetWidth,
-    height: receiptEl.scrollHeight,
-    windowHeight: receiptEl.scrollHeight,
-    y: 0, scrollX: 0, scrollY: 0,
-    onclone: async (clonedDoc: Document) => {
-      // Runs on the throwaway clone only — the live receipt is untouched.
-      await inlineRemoteImages(clonedDoc);
-    },
-  });
+  const restoreImgs = await inlineReceiptImagesLocally(receiptEl);
+  try {
+    return await html2canvas(receiptEl, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      imageTimeout: 1000,
+      width: receiptEl.offsetWidth,
+      height: receiptEl.scrollHeight,
+      windowHeight: receiptEl.scrollHeight,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
+    });
+  } finally {
+    restoreImgs();
+  }
 }
 
 export function triggerDownload(blob: Blob, fileName: string) {

@@ -23,6 +23,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   shortcut?: string;
   loading?: boolean;
   fullWidth?: boolean;
+  showSlowWarning?: boolean;
 }
 
 const variantClass: Record<ButtonVariant, string> = {
@@ -61,6 +62,7 @@ export function Button({
   shortcut,
   loading = false,
   fullWidth = false,
+  showSlowWarning = false,
   className,
   children,
   disabled,
@@ -69,7 +71,7 @@ export function Button({
 }: ButtonProps) {
   useEffect(() => {
     let timeout: any;
-    if (loading) {
+    if (loading && showSlowWarning) {
       timeout = setTimeout(() => {
         sonner.info('Network is slow, please wait...', { id: 'slow_net_warning', duration: 4000 });
       }, 4000);
@@ -78,7 +80,7 @@ export function Button({
       if (timeout) clearTimeout(timeout);
       sonner.dismiss('slow_net_warning');
     };
-  }, [loading]);
+  }, [loading, showSlowWarning]);
 
   const iconEl = loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : renderIcon(icon);
 
