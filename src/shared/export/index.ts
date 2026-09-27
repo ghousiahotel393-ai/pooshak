@@ -1,4 +1,5 @@
 export { ExportButton, type ExportButtonProps } from './ExportButton';
+export { PdfLayoutPicker } from './PdfLayoutPicker';
 export {
   exportToCSV,
   exportToExcel,

@@ -2,20 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveFile, type SaveFileResult } from './saveFile';
-
-/**
- * exportEngine — THE single shared source of truth for ALL business report
- * exports (PDF / Excel / CSV / Print) across the entire app.
- *
- * No page-specific logic lives here. It only knows how to render a generic
- * tabular report from a generic config. Every page passes its own
- * data / columns / title / filter-summary via <ExportButton> props.
- *
- * Explicitly separate systems (DO NOT route through here):
- *  - Full database backup/restore (BackupTab / DatabaseTools / InventoryManager JSON)
- *  - POS receipts & KOT prints (pos/ReceiptPrint.tsx, pos/KOTPrint.tsx)
- *  - Barcode label printing (BarcodeGenerator)
- */
+import { getThermalColumns } from './thermalColumns';
 
 export type ExportFormat = 'pdf' | 'xlsx' | 'csv' | 'print';
 
@@ -235,20 +222,23 @@ export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileR
   doc.line(margin, metaY + (isThermal ? 2 : 3), pageWidth - margin, metaY + (isThermal ? 2 : 3));
 
   // Table — autoTable wraps long text, fits columns to page width and preserves alignment
-  const head = [config.columns.map(c => getColumnLabel(c))];
+  const cols = isThermal ? getThermalColumns(config.columns, is58mm) : config.columns;
+  const isReduced = isThermal && cols.length < config.columns.length;
+
+  const head = [cols.map(c => getColumnLabel(c))];
   const body = config.rows.map(row =>
-    config.columns.map(c => formatValue(c, row, config.currencySymbol || ''))
+    cols.map(c => formatValue(c, row, config.currencySymbol || ''))
   );
   const columnStyles: Record<number, { halign: 'left' | 'right' }> = {};
-  config.columns.forEach((c, i) => {
+  cols.forEach((c, i) => {
     if (isNumericColumn(c)) columnStyles[i] = { halign: 'right' };
   });
 
-  const numCols = config.columns.length;
+  const numCols = cols.length;
   const tableFontSize = is58mm
-    ? (numCols > 5 ? 4 : numCols > 3 ? 4.5 : 5.5)
+    ? (numCols > 4 ? 4.5 : 5.5)
     : is80mm
-    ? (numCols > 6 ? 4.8 : numCols > 4 ? 5.5 : 6.5)
+    ? (numCols > 4 ? 5.5 : 6.5)
     : 7.5;
 
   autoTable(doc, {
@@ -274,6 +264,13 @@ export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileR
     alternateRowStyles: { fillColor: [245, 247, 250] },
     columnStyles,
   });
+
+  if (isReduced) {
+    const finalY = (doc as any).lastAutoTable?.finalY || (metaY + 20);
+    doc.setFontSize(is58mm ? 4.2 : 5);
+    doc.setTextColor(156, 163, 175);
+    doc.text(`* Showing primary columns for ${is58mm ? '58mm' : '80mm'} slip. Export as A4 for full ${config.columns.length} columns.`, margin, finalY + 3.5);
+  }
 
   // Footer
   const pageCount = doc.getNumberOfPages();

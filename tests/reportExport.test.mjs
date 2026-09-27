@@ -15,6 +15,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getColumnLabel } from '../src/shared/export/exportEngine.ts';
+import { getThermalColumns } from '../src/shared/export/thermalColumns.ts';
 
 let passed = 0;
 const assert = (c, m) => { if (!c) throw new Error(`ASSERT FAILED: ${m}`); passed++; console.log(`  ok - ${m}`); };
@@ -79,6 +80,46 @@ async function main() {
   assert(ws['L4'] && ws['L4'].v === 'Col 11', 'Excel header row maps last column label');
   // numeric data stays numeric (real Excel math), not a string.
   assert(ws['L5'] && ws['L5'].v === 1234567.89 && ws['L5'].t === 'n', 'Excel keeps numeric cells numeric');
+
+  // 4. getThermalColumns (prevents 21-column squash on thermal rolls)
+  const sales21Cols = [
+    { key: 'date', label: 'Date' },
+    { key: 'time', label: 'Time' },
+    { key: 'invoice_number', label: 'Invoice Number' },
+    { key: 'receipt_number', label: 'Receipt Number' },
+    { key: 'customer_name', label: 'Customer Name' },
+    { key: 'customer_phone', label: 'Customer Phone' },
+    { key: 'cashier', label: 'Cashier' },
+    { key: 'cashier_username', label: 'Cashier @ Username' },
+    { key: 'salesman', label: 'Salesman' },
+    { key: 'items_list', label: 'Items List' },
+    { key: 'items_qty', label: 'Items Qty' },
+    { key: 'sale_type', label: 'Sale Type' },
+    { key: 'payment_method', label: 'Payment Method' },
+    { key: 'subtotal', label: 'Subtotal' },
+    { key: 'discount', label: 'Discount' },
+    { key: 'tax', label: 'Tax' },
+    { key: 'refunded', label: 'Refunded' },
+    { key: 'net_revenue', label: 'Net Revenue' },
+    { key: 'status', label: 'Status' },
+    { key: 'cost_of_goods', label: 'Cost of Goods' },
+    { key: 'gross_profit', label: 'Gross Profit' },
+  ];
+
+  const thermal80Cols = getThermalColumns(sales21Cols, false);
+  assert(thermal80Cols.length <= 5, '80mm thermal selects at most 5 primary columns');
+  assert(thermal80Cols.some(c => c.key === 'invoice_number'), '80mm thermal includes invoice number');
+  assert(thermal80Cols.some(c => c.key === 'net_revenue'), '80mm thermal includes net revenue');
+
+  const thermal58Cols = getThermalColumns(sales21Cols, true);
+  assert(thermal58Cols.length <= 4, '58mm thermal selects at most 4 primary columns');
+
+  const smallCols = [
+    { key: 'item', label: 'Item' },
+    { key: 'qty', label: 'Qty' },
+    { key: 'total', label: 'Total' },
+  ];
+  assert(getThermalColumns(smallCols, false).length === 3, 'small tables keep all columns');
 
   console.log(`\nAll ${passed} assertions passed.`);
 }

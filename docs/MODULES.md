@@ -75,16 +75,20 @@ Import: `import { ExportButton, exportToCSV, exportToPDF, printReport } from '..
 
 | Module | Purpose |
 |--------|---------|
-| `exportEngine.ts` | Single authoritative engine for `exportToCSV` (UTF-8 BOM), `exportToExcel` (SheetJS array buffer), `exportToPDF` (jsPDF v4 + autotable with dynamic slip height & auto-scaled thermal/A4 fonts), `triggerDownload`, `defaultFilename`, `safeFilename`, `formatValue`/`excelValue`, `DEFAULT_BRAND`. |
-| `ExportButton.tsx` | Universal export trigger: `data`, `columns` (`{key,label,format?}`), `title`, `subtitle?`, `filtersSummary?`, `formats?` (`csv\|excel\|pdf\|print`), `compact?` (icon-only), `maxRows?`, `currencySymbol?`, `brand?`, `paperSize?`. Renders labeled dropdown on desktop, native `BottomSheet` on mobile, with tactile feedback and live loading spin state. |
+| `exportEngine.ts` | Single authoritative engine for `exportToCSV` (UTF-8 BOM), `exportToExcel` (SheetJS array buffer), `exportToPDF` (jsPDF v4 + autotable with A4 full-page or dynamic thermal slip height, auto-scaled fonts & column fit), `triggerDownload`, `defaultFilename`, `safeFilename`, `formatValue`/`excelValue`, `DEFAULT_BRAND`. |
+| `ExportButton.tsx` | Universal export trigger: `data`, `columns` (`{key,label,format?}`), `title`, `subtitle?`, `filtersSummary?`, `formats?` (`csv\|excel\|pdf\|print`), `compact?` (icon-only), `maxRows?`, `currencySymbol?`, `brand?`, `paperSize?`. Desktop labeled dropdown & mobile `BottomSheet`. PDF export offers A4 Document vs Receipt Roll choice; Print runs automatically with the selected printer size. |
+| `PdfLayoutPicker.tsx` | Sub-picker component inside `ExportButton` allowing user to choose between A4 Document (Recommended for wide multi-column tables) or Receipt Roll (80mm/58mm thermal slip). |
+| `thermalColumns.ts` | Semantic column extractor (`getThermalColumns`): filters wide >5 column reports down to the 4-5 primary columns (`id`, `date`, `entity`, `net_revenue/total`, `status`) for 80mm/58mm slips, preventing unreadable 1-letter-wide vertical column wrapping. |
 | `saveFile.ts` | Universal cross-platform delivery: writes to Documents + opens OS Share sheet on Capacitor native (Android/iOS), uses Web Share API on PWA where supported, and clean hidden anchor click (without popup-blocking `target="_blank"`) on desktop/Electron. |
 | `printReport.ts` | Branded HTML print layout with `@page` sizing (`80mm auto`, `58mm auto`, or A4) matching Settings, falling back to PDF/AirPrint on mobile WebView. |
 
 **Mandatory Architectural Rules (Strictly Enforced):**
-1. **Settings-Authoritative Printer & Paper Size:**
-   - PDF export and Browser Print MUST respect the store/hardware printer size configured in Settings (`80mm` standard thermal, `58mm` compact thermal, or `A4` office sheet) resolved via `storeSettings.receiptPaperSize` / `localStorage.pos_hardware_printer_config`.
-   - Never override or drop 80mm/58mm thermal formatting for A4 based on column count.
-   - `exportEngine.ts` dynamically calculates thermal slip height to avoid huge blank tails and auto-scales column fonts (`4.8pt` - `6.5pt` on 80mm, `4pt` - `5.5pt` on 58mm) so wide reports never clip.
+1. **PDF Export Layout Choice vs Automatic Print:**
+   - **PDF Export Choice:** When user taps "Export as PDF", the UI presents a 2-option layout picker:
+     1. **A4 Document (Recommended):** Full table with all columns intact, automatically rendering in landscape (if >5 cols) or portrait with clean margins and auto-wrapped table cells.
+     2. **Receipt Roll (80mm / 58mm):** Thermal slip layout matching the store/hardware printer configured in Settings.
+   - **Automatic Print:** When user taps "Print", it immediately routes to `printReport` using the active printer size from Settings (`80mm`, `58mm`, or `A4`) without interrupting the user with prompts.
+   - **Thermal Column Protection (`thermalColumns.ts`):** On 80mm/58mm slips, tables with >5 columns must never squeeze 21 columns into 3mm slivers. Instead, `getThermalColumns()` extracts the 4-5 primary semantic columns (`id`, `date`, `entity`, `total`, `status`), adding a footnote: `* Showing primary columns for 80mm slip. Export as A4 for full N columns.`
 2. **Mobile & Portal Safety (Anti-Unmount Bug Rule):**
    - On mobile/small screens (<768px), `ExportButton` displays a `BottomSheet` portaled to `document.body`.
    - Any `onClickOutside` or document-level `mousedown` listener MUST be scoped to desktop only (`if (!isOpen || isMobile) return;`). A document-level `mousedown` listener must NEVER run when a portaled modal is open, otherwise `mousedown` destroys the modal before the browser fires the button's `click` event, leaving the user with zero response.

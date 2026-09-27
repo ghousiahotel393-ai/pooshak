@@ -1,5 +1,6 @@
 import type { ReportExportConfig } from './exportEngine';
 import { DEFAULT_BRAND, getColumnLabel } from './exportEngine';
+import { getThermalColumns } from './thermalColumns';
 
 export type PrintMethod = 'window' | 'iframe' | 'pdf-fallback' | 'failed';
 export interface PrintResult {
@@ -67,13 +68,14 @@ export async function printReport(config: ReportExportConfig): Promise<PrintResu
   };
 
   const isNumericCol = (c: any) => c.format === 'number' || c.format === 'currency';
+  const cols = isThermal ? getThermalColumns(config.columns, is58mm) : config.columns;
 
-  const headers = config.columns
+  const headers = cols
     .map(c => `<th class="${isNumericCol(c) ? 'num' : 'text'}">${escapeHtml(getColumnLabel(c))}</th>`)
     .join('');
 
   const body = config.rows.map(row => {
-    const tds = config.columns.map(c =>
+    const tds = cols.map(c =>
       `<td class="${isNumericCol(c) ? 'num' : 'text'}">${escapeHtml(formatVal(c, row))}</td>`
     ).join('');
     return `<tr>${tds}</tr>`;

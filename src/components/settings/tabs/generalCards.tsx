@@ -192,7 +192,7 @@ export function GeneralLocalization({ formData, setFormDataDirect, handleChange,
             options={[
               { id: '80mm', label: '80mm (Standard Thermal)' },
               { id: '58mm', label: '58mm (Compact Thermal)' },
-              { id: 'a4', label: 'A4 (Invoice Style)' }
+              { id: 'A4', label: 'A4 (Invoice Style)' }
             ]}
             value={formData.receiptPaperSize}
             onChange={(val) => {

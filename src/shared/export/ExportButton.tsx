@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronRight } from 'lucide-react';
 import { Button, BottomSheet } from '../ui';
 import { AppIcons } from '../../lib/icons';
 import { sonner } from '../../lib/sonner';
@@ -15,14 +15,8 @@ import {
 } from './exportEngine';
 import { useSettingsStore } from '../../stores';
 import { getCurrencySymbol } from '../../lib/currencies';
+import { PdfLayoutPicker } from './PdfLayoutPicker';
 
-/**
- * ExportButton — the single reusable export trigger for ALL business reports.
- * Zero business logic: pages pass their own filtered data/columns/title.
- *
- * Desktop: labeled dropdown menu. Mobile (<768px): BottomSheet picker.
- * `compact` renders the icon-only style used in tight toolbars (e.g. PurchaseOrderSystem).
- */
 export interface ExportButtonProps {
   data: Record<string, any>[];
   columns: ExportColumn[];
@@ -85,9 +79,15 @@ export function ExportButton({
   paperSize,
 }: ExportButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [pdfChoiceOpen, setPdfChoiceOpen] = useState(false);
   const [busy, setBusy] = useState<ExportFormat | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const closeAll = () => {
+    setIsOpen(false);
+    setPdfChoiceOpen(false);
+  };
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -100,14 +100,16 @@ export function ExportButton({
     if (!isOpen || isMobile) return;
     const onClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+        closeAll();
       }
     };
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, [isOpen, isMobile]);
 
-  const run = async (format: ExportFormat) => {
+  const activePrinterSize = resolveSelectedPaperSize(paperSize);
+
+  const run = async (format: ExportFormat, paperOverride?: string) => {
     if (busy) return;
 
     setBusy(format);
@@ -125,7 +127,7 @@ export function ExportButton({
         logo: storeSettings.storeLogo || (storeSettings as any).logoUrl || DEFAULT_BRAND.logo,
       };
 
-      const selectedPaper = resolveSelectedPaperSize(paperSize);
+      const selectedPaper = paperOverride || activePrinterSize;
       const config: ReportExportConfig = {
         title,
         subtitle,
@@ -177,7 +179,7 @@ export function ExportButton({
       sonner.error(`Export failed — ${(error as Error)?.message || 'unknown error'}`);
     } finally {
       setBusy(null);
-      setIsOpen(false);
+      closeAll();
     }
   };
 
@@ -185,7 +187,10 @@ export function ExportButton({
     <Button
       variant="secondary"
       size="md"
-      onClick={() => setIsOpen(o => !o)}
+      onClick={() => {
+        if (isOpen) closeAll();
+        else setIsOpen(true);
+      }}
       disabled={disabled || data.length === 0}
       loading={!!busy}
       icon={busy ? <Loader2 className="h-4 w-4 animate-spin" /> : (icon ?? <AppIcons.download className="h-4 w-4" />)}
@@ -199,26 +204,49 @@ export function ExportButton({
     </Button>
   );
 
-  const renderFormatList = (onPick: (f: ExportFormat) => void) => (
-    <div className="w-full space-y-0.5">
-      {formats.map(f => (
-        <button
-          key={f}
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onPick(f);
-          }}
-          disabled={!!busy}
-          className="w-full flex items-center gap-2 px-2.5 h-8 rounded text-[12px] font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 active:bg-neutral-200 dark:active:bg-white/10 transition-colors disabled:opacity-40 text-left cursor-pointer select-none"
-        >
-          <span className="text-primary">{FORMAT_META[f].icon}</span>
-          <span>{FORMAT_META[f].label}</span>
-          {busy === f && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary ml-auto" />}
-        </button>
-      ))}
-    </div>
-  );
+  const renderContent = () => {
+    if (pdfChoiceOpen) {
+      return (
+        <PdfLayoutPicker
+          activePrinterSize={activePrinterSize}
+          busy={busy}
+          onBack={() => setPdfChoiceOpen(false)}
+          onSelect={paper => run('pdf', paper)}
+        />
+      );
+    }
+
+    return (
+      <div className="w-full space-y-0.5">
+        {formats.map(f => {
+          const isPdf = f === 'pdf';
+          return (
+            <button
+              key={f}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isPdf) setPdfChoiceOpen(true);
+                else run(f);
+              }}
+              disabled={!!busy}
+              className="w-full flex items-center justify-between px-2.5 h-8 rounded text-[12px] font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 active:bg-neutral-200 dark:active:bg-white/10 transition-colors disabled:opacity-40 text-left cursor-pointer select-none"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-primary">{FORMAT_META[f].icon}</span>
+                <span>{FORMAT_META[f].label}</span>
+              </div>
+              {isPdf ? (
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+              ) : (
+                busy === f && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary ml-auto" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -226,11 +254,13 @@ export function ExportButton({
         {trigger}
 
         {isOpen && !isMobile && (
-          <div className="absolute right-0 top-full mt-1 z-[60] min-w-[200px] bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] shadow-lg p-1 animate-in fade-in zoom-in-95 duration-150">
-            <div className="px-2.5 py-1 text-[10px] font-mono text-neutral-400 dark:text-neutral-500 border-b border-neutral-100 dark:border-white/[0.04] mb-1">
-              Printer: {resolveSelectedPaperSize(paperSize)}
-            </div>
-            {renderFormatList(f => run(f))}
+          <div className="absolute right-0 top-full mt-1 z-[60] min-w-[215px] bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] shadow-lg p-1.5 animate-in fade-in zoom-in-95 duration-150">
+            {!pdfChoiceOpen && (
+              <div className="px-2.5 py-1 text-[10px] font-mono text-neutral-400 dark:text-neutral-500 border-b border-neutral-100 dark:border-white/[0.04] mb-1">
+                Printer: {activePrinterSize}
+              </div>
+            )}
+            {renderContent()}
           </div>
         )}
       </div>
@@ -238,13 +268,13 @@ export function ExportButton({
       {isOpen && isMobile && (
         <BottomSheet
           open={isOpen}
-          onClose={() => setIsOpen(false)}
-          title="Export Report"
-          subtitle={`${title} • ${resolveSelectedPaperSize(paperSize)}`}
+          onClose={closeAll}
+          title={pdfChoiceOpen ? 'Select PDF Layout' : 'Export Report'}
+          subtitle={`${title} • ${activePrinterSize}`}
           maxWidth="md"
         >
           <div className="px-1 pb-2">
-            {renderFormatList(f => run(f))}
+            {renderContent()}
           </div>
         </BottomSheet>
       )}
