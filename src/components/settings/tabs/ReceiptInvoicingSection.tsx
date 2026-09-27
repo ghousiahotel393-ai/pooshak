@@ -1,6 +1,7 @@
-import React from 'react';
-import { Hash, RotateCcw, Eye } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Hash, RotateCcw, Eye, AlertTriangle } from 'lucide-react';
 import { Button } from '../../../shared/ui';
+import { useSalesStore } from '../../../stores';
 import type { ReceiptSettingsFormProps } from './ReceiptSettingsForm.types';
 
 export function ReceiptInvoicingSection({
@@ -18,6 +19,26 @@ export function ReceiptInvoicingSection({
     : counterNum.toString();
 
   const previewInvoice = `${prefix ? prefix + '-' : ''}${sampleSerial}`;
+
+  // Highest invoice serial already saved (computed from the in-memory sales store — instant,
+  // no query/lag). Numbering always continues from MAX(this, entered) + 1, so a value at/below
+  // this is auto-advanced past — warn the user instead of letting them think it will "go back".
+  const sales = useSalesStore((s) => s.sales);
+  const highestUsed = useMemo(() => {
+    let max = 0;
+    for (const s of sales) {
+      const inv = (s as any).invoiceNumber as string | undefined;
+      if (!inv) continue;
+      const last = parseInt(inv.split('-').pop() || '', 10);
+      if (!isNaN(last) && last > max) max = last;
+    }
+    return max;
+  }, [sales]);
+
+  const willCollide = highestUsed > 0 && counterNum <= highestUsed;
+  const nextFree = highestUsed + 1;
+  const nextFreeSerial = padDigits > 0 ? nextFree.toString().padStart(padDigits, '0') : nextFree.toString();
+  const nextFreeInvoice = `${prefix ? prefix + '-' : ''}${nextFreeSerial}`;
 
   return (
     <div className="p-4 sm:p-5 bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] shadow-none space-y-4">
@@ -87,6 +108,15 @@ export function ReceiptInvoicingSection({
           <p className="text-[10px] text-neutral-600 dark:text-neutral-300">
             Sequence starts or increments from here
           </p>
+          {willCollide && (
+            <div className="flex items-start gap-1.5 mt-1 p-1.5 rounded bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+              <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 mt-[1px]" />
+              <p className="text-[10px] leading-snug text-amber-700 dark:text-amber-400">
+                #{prefix ? prefix + '-' : ''}{highestUsed} already exists. Numbering can't go back —
+                the next sale will use <span className="font-semibold">#{nextFreeInvoice}</span>.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
