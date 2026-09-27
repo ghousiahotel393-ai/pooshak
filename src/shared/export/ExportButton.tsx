@@ -38,6 +38,24 @@ export interface ExportButtonProps {
   filename?: string;
   currencySymbol?: string;
   brand?: { name: string; logo?: string };
+  paperSize?: string;
+}
+
+function resolveSelectedPaperSize(propSize?: string): string {
+  if (propSize && propSize.trim()) return propSize.trim();
+  const storeSettings = useSettingsStore.getState().settings || ({} as any);
+  if (storeSettings.receiptPaperSize) {
+    const s = String(storeSettings.receiptPaperSize).trim();
+    if (s) return s;
+  }
+  try {
+    const raw = localStorage.getItem('pos_hardware_printer_config');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.paperSize) return String(parsed.paperSize).trim();
+    }
+  } catch {}
+  return '80mm';
 }
 
 const FORMAT_META: Record<ExportFormat, { label: string; icon: React.ReactNode }> = {
@@ -64,6 +82,7 @@ export function ExportButton({
   filename,
   currencySymbol,
   brand = DEFAULT_BRAND,
+  paperSize,
 }: ExportButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [busy, setBusy] = useState<ExportFormat | null>(null);
@@ -106,6 +125,7 @@ export function ExportButton({
         logo: storeSettings.storeLogo || (storeSettings as any).logoUrl || DEFAULT_BRAND.logo,
       };
 
+      const selectedPaper = resolveSelectedPaperSize(paperSize);
       const config: ReportExportConfig = {
         title,
         subtitle,
@@ -115,7 +135,7 @@ export function ExportButton({
         filename,
         currencySymbol: activeCurrencySymbol,
         brand: activeBrand,
-        paperSize: storeSettings.receiptPaperSize || 'A4',
+        paperSize: selectedPaper,
       };
 
       if (format === 'print') {
@@ -207,6 +227,9 @@ export function ExportButton({
 
         {isOpen && !isMobile && (
           <div className="absolute right-0 top-full mt-1 z-[60] min-w-[200px] bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] shadow-lg p-1 animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-2.5 py-1 text-[10px] font-mono text-neutral-400 dark:text-neutral-500 border-b border-neutral-100 dark:border-white/[0.04] mb-1">
+              Printer: {resolveSelectedPaperSize(paperSize)}
+            </div>
             {renderFormatList(f => run(f))}
           </div>
         )}
@@ -217,7 +240,7 @@ export function ExportButton({
           open={isOpen}
           onClose={() => setIsOpen(false)}
           title="Export Report"
-          subtitle={title}
+          subtitle={`${title} • ${resolveSelectedPaperSize(paperSize)}`}
           maxWidth="md"
         >
           <div className="px-1 pb-2">

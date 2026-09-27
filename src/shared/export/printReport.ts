@@ -35,9 +35,11 @@ export async function printReport(config: ReportExportConfig): Promise<PrintResu
 
   const brand = config.brand || DEFAULT_BRAND;
   const currencySymbol = config.currencySymbol || '';
-  const paperSize = config.paperSize || 'A4';
-  const isThermal = paperSize === '80mm' || paperSize === '58mm';
-  const cssWidth = paperSize === '58mm' ? '58mm' : paperSize === '80mm' ? '80mm' : '100%';
+  const rawPaper = (config.paperSize || '80mm').trim().toLowerCase();
+  const is58mm = rawPaper === '58mm';
+  const is80mm = rawPaper === '80mm';
+  const isThermal = is58mm || is80mm;
+  const cssWidth = is58mm ? '58mm' : is80mm ? '80mm' : '100%';
 
   const escapeHtml = (v: string) =>
     String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -80,15 +82,15 @@ export async function printReport(config: ReportExportConfig): Promise<PrintResu
   const win = isCapacitorNative() ? null : window.open('', '_blank', 'width=1024,height=768');
 
   const thermalCss = isThermal ? `
-    body { width: ${cssWidth}; padding: 4px; font-size: ${paperSize === '58mm' ? '9px' : '11px'}; color: #000; }
+    body { width: ${cssWidth}; padding: 3px; font-size: ${is58mm ? '8px' : '10px'}; color: #000; }
     .brand-header { flex-direction: column; text-align: center; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 8px; }
-    .brand-name { font-size: ${paperSize === '58mm' ? '12px' : '16px'}; color: #000; }
-    h1 { font-size: ${paperSize === '58mm' ? '10px' : '12px'}; color: #000; margin-top: 4px; }
-    .meta { font-size: ${paperSize === '58mm' ? '8px' : '9px'}; color: #000; }
-    table { font-size: ${paperSize === '58mm' ? '8px' : '9px'}; margin-top: 8px; }
-    th { background: transparent; color: #000; border-bottom: 1px solid #000; padding: 4px 2px; }
-    td { padding: 4px 2px; border-bottom: 1px dotted #ccc; color: #000; }
-    .footer { margin-top: 12px; font-size: ${paperSize === '58mm' ? '7px' : '8px'}; color: #000; }
+    .brand-name { font-size: ${is58mm ? '12px' : '15px'}; color: #000; }
+    h1 { font-size: ${is58mm ? '10px' : '12px'}; color: #000; margin-top: 4px; }
+    .meta { font-size: ${is58mm ? '7px' : '8.5px'}; color: #000; }
+    table { font-size: ${is58mm ? '7px' : '8.5px'}; margin-top: 8px; }
+    th { background: transparent; color: #000; border-bottom: 1px solid #000; padding: 3px 2px; }
+    td { padding: 3px 2px; border-bottom: 1px dotted #ccc; color: #000; }
+    .footer { margin-top: 10px; font-size: ${is58mm ? '6.5px' : '7.5px'}; color: #000; }
   ` : `
     body { padding: 24px; color: #0f172a; }
     .brand-header { flex-direction: row; align-items: center; gap: 12px; border-bottom: 3px solid #10b981; padding-bottom: 12px; margin-bottom: 16px; }

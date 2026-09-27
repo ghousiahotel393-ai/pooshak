@@ -187,30 +187,38 @@ function isNumericColumn(col: ExportColumn): boolean {
 }
 
 export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileResult> {
-  const requestedPaper = config.paperSize || 'A4';
-  const isThermal = (requestedPaper === '80mm' || requestedPaper === '58mm') && config.columns.length <= 4;
+  const rawPaper = (config.paperSize || '80mm').trim().toLowerCase();
+  const is58mm = rawPaper === '58mm';
+  const is80mm = rawPaper === '80mm';
+  const isThermal = is58mm || is80mm;
   const orientation = isThermal ? 'portrait' : (config.columns.length > 5 ? 'landscape' : 'portrait');
-  const format = isThermal ? (requestedPaper === '58mm' ? [58, 400] : [80, 400]) : 'a4';
 
-  const doc = new jsPDF({ orientation, format });
+  // Thermal rolls: slip height scales with record count, capping at 450mm before pagination
+  const rowCount = config.rows.length;
+  const slipHeight = isThermal
+    ? Math.max(70, Math.min(Math.ceil(40 + (rowCount + 1) * (is58mm ? 6.5 : 7.5) + 20), 450))
+    : 297;
+  const format: string | [number, number] = is58mm ? [58, slipHeight] : is80mm ? [80, slipHeight] : 'a4';
+
+  const doc = new jsPDF({ orientation, unit: 'mm', format });
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = isThermal ? 4 : 12;
+  const margin = is58mm ? 2.5 : is80mm ? 3.5 : 12;
   const brand = config.brand || DEFAULT_BRAND;
 
   // Branded header
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(isThermal ? 10 : 15);
+  doc.setFontSize(is58mm ? 8.5 : is80mm ? 11 : 15);
   doc.setTextColor(16, 185, 129); // --color-primary
-  doc.text(brand.name, margin, isThermal ? 8 : 16);
+  doc.text(brand.name, margin, is58mm ? 6 : is80mm ? 8 : 16);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(isThermal ? 8 : 11);
+  doc.setFontSize(is58mm ? 7 : is80mm ? 8.5 : 11);
   doc.setTextColor(15, 23, 42);
-  doc.text(config.title, margin, isThermal ? 13 : 23);
+  doc.text(config.title, margin, is58mm ? 10.5 : is80mm ? 13 : 23);
 
-  doc.setFontSize(isThermal ? 6 : 8);
+  doc.setFontSize(is58mm ? 5 : is80mm ? 6 : 8);
   doc.setTextColor(107, 114, 128);
-  let metaY = isThermal ? 17 : 28;
+  let metaY = is58mm ? 14 : is80mm ? 17 : 28;
   doc.text(`Generated: ${new Date().toLocaleString()}`, margin, metaY);
   if (config.filtersSummary) {
     metaY += (isThermal ? 3 : 4);
@@ -223,11 +231,10 @@ export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileR
 
   // Brand rule line
   doc.setDrawColor(16, 185, 129);
-  doc.setLineWidth(0.6);
+  doc.setLineWidth(is58mm ? 0.3 : is80mm ? 0.4 : 0.6);
   doc.line(margin, metaY + (isThermal ? 2 : 3), pageWidth - margin, metaY + (isThermal ? 2 : 3));
 
-  // Table — autoTable wraps long text, fits columns to the page width and preserves
-  // per-column alignment (numeric/currency right-aligned) so wide reports never clip.
+  // Table — autoTable wraps long text, fits columns to page width and preserves alignment
   const head = [config.columns.map(c => getColumnLabel(c))];
   const body = config.rows.map(row =>
     config.columns.map(c => formatValue(c, row, config.currencySymbol || ''))
@@ -237,15 +244,22 @@ export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileR
     if (isNumericColumn(c)) columnStyles[i] = { halign: 'right' };
   });
 
+  const numCols = config.columns.length;
+  const tableFontSize = is58mm
+    ? (numCols > 5 ? 4 : numCols > 3 ? 4.5 : 5.5)
+    : is80mm
+    ? (numCols > 6 ? 4.8 : numCols > 4 ? 5.5 : 6.5)
+    : 7.5;
+
   autoTable(doc, {
     head,
     body,
-    startY: metaY + (isThermal ? 5 : 7),
+    startY: metaY + (isThermal ? 4.5 : 7),
     margin: { left: margin, right: margin, bottom: isThermal ? 6 : 14 },
     tableWidth: 'auto',
     styles: {
-      fontSize: isThermal ? 5 : 7.5,
-      cellPadding: isThermal ? 1 : 1.6,
+      fontSize: tableFontSize,
+      cellPadding: is58mm ? 0.6 : is80mm ? 0.9 : 1.6,
       overflow: 'linebreak',
       valign: 'middle',
     },
@@ -254,6 +268,7 @@ export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileR
       textColor: [255, 255, 255],
       fontStyle: 'bold',
       halign: 'left',
+      fontSize: tableFontSize,
     },
     bodyStyles: { textColor: [15, 23, 42] },
     alternateRowStyles: { fillColor: [245, 247, 250] },
@@ -262,15 +277,15 @@ export async function exportToPDF(config: ReportExportConfig): Promise<SaveFileR
 
   // Footer
   const pageCount = doc.getNumberOfPages();
-  doc.setFontSize(isThermal ? 5 : 7);
+  doc.setFontSize(is58mm ? 4.5 : is80mm ? 5.5 : 7);
   doc.setTextColor(156, 163, 175);
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.text(`${brand.name} — ${config.title} — Page ${i} of ${pageCount}`, margin, doc.internal.pageSize.getHeight() - (isThermal ? 3 : 6));
+    const footerY = doc.internal.pageSize.getHeight() - (isThermal ? 3 : 6);
+    doc.text(`${brand.name} — ${config.title} — Page ${i} of ${pageCount}`, margin, footerY);
   }
 
-  // Output as a blob and route through the cross-platform saver instead of
-  // jsPDF's browser-only doc.save() (a no-op inside native WebView / PWA).
+  // Output as blob and save
   const blob = doc.output('blob') as Blob;
   return saveFile(blob, config.filename || defaultFilename(config.title, 'pdf'), 'application/pdf');
 }

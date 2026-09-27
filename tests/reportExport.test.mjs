@@ -54,6 +54,16 @@ async function main() {
   // autoTable must have paginated/laid out at least one page.
   assert(doc.getNumberOfPages() >= 1, 'autoTable laid out at least one page');
 
+  // 2b. Selected printer paper sizes (80mm thermal, 58mm thermal, A4 sheet).
+  const doc80 = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, 200] });
+  assert(Math.round(doc80.internal.pageSize.getWidth()) === 80, '80mm thermal roll width is 80mm');
+
+  const doc58 = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [58, 200] });
+  assert(Math.round(doc58.internal.pageSize.getWidth()) === 58, '58mm thermal roll width is 58mm');
+
+  const docA4 = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  assert(Math.round(docA4.internal.pageSize.getWidth()) === 210, 'A4 sheet width is 210mm');
+
   // 3. Excel AOA mapping (title + header + data land in expected cells).
   const aoa = [
     ['My Report'],
