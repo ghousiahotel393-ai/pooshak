@@ -110,16 +110,12 @@ export async function runLocalDocumentsBackup(password?: string): Promise<{
         throw new Error(`Electron filesystem write failed: ${fsErr.message}`);
       }
     } else {
-      // Browser fallback: trigger file download & store in IndexedDB
+      // Browser / PWA / Capacitor native: route through the cross-platform saver
+      // (Capacitor Filesystem+Share / Web Share / anchor) so the backup file is actually
+      // written — a raw anchor download is a silent no-op inside a native WebView / PWA.
+      const { saveFile } = await import('../../shared/export/saveFile');
       const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await saveFile(blob, filename, 'application/json');
     }
 
     saveLocalBackupConfig({
