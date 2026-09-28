@@ -59,7 +59,7 @@ async function main() {
       throw new Error('No Supabase organizations found for this token');
     }
     const orgId = orgs[0].id;
-    const projectName = `zaynahs-pos-${Date.now()}`;
+    const projectName = env.SUPABASE_PROJECT_NAME || `zaynahs-pos-${Date.now()}`;
     const dbPass = `PosAdmin_${Math.random().toString(36).slice(2, 10)}!#99`;
 
     const createRes = await fetch('https://api.supabase.com/v1/projects', {
@@ -79,7 +79,19 @@ async function main() {
     const newProj = await createRes.json();
     projectRef = newProj.id;
     console.log(`[Created] Project ID: ${projectRef} in ap-south-1`);
-    updateEnv({ SUPABASE_REF: projectRef });
+    updateEnv({ SUPABASE_REF: projectRef, SUPABASE_DB_PASSWORD: dbPass });
+
+    // Wait for the project to become ACTIVE_HEALTHY before provisioning storage/policies.
+    process.stdout.write('[wait] Project spinning up');
+    for (let i = 0; i < 60; i++) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const statusRes = await fetch(`https://api.supabase.com/v1/projects/${projectRef}`, {
+        headers: { Authorization: `Bearer ${mgmtKey}` }
+      });
+      const info = await statusRes.json();
+      if (info?.status === 'ACTIVE_HEALTHY') { process.stdout.write(' healthy\n'); break; }
+      process.stdout.write('.');
+    }
   }
 
   // 2. Fetch Project Keys
@@ -99,6 +111,7 @@ async function main() {
   updateEnv({
     VITE_SUPABASE_URL: projectUrl,
     VITE_SUPABASE_ANON_KEY: anonKey,
+    SUPABASE_SERVICE_ROLE_KEY: serviceKey,
     SUPABASE_REF: projectRef
   });
   console.log(`[Configured] URL: ${projectUrl}`);

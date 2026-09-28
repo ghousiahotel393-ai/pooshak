@@ -8,6 +8,7 @@ dist-electron/
 tsconfig.tsbuildinfo
 env_backups/
 env backup/
+env backups/
 .vercel
 scratch/
 *.log
