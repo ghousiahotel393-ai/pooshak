@@ -35,12 +35,7 @@ export interface AuthUserInfo {
 }
 
 export async function isFirstLaunch(): Promise<boolean> {
-  try {
-    const row = await localQueryOne<{ count: number }>(`SELECT COUNT(*) AS count FROM staff_users WHERE is_active = 1;`);
-    return (row?.count ?? 0) === 0;
-  } catch {
-    return true;
-  }
+  return false;
 }
 
 export async function getActiveStaffUsers(): Promise<AuthUserInfo[]> {

@@ -351,6 +351,17 @@ export const LOCAL_SCHEMA_STATEMENTS: string[] = [
     ('11111111-1111-4111-8111-000000000002','11111111-1111-4111-8111-a00000000002','card','Card',1,'1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z'),
     ('11111111-1111-4111-8111-000000000003','11111111-1111-4111-8111-a00000000003','bank','Bank Transfer',1,'1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z'),
     ('11111111-1111-4111-8111-000000000004','11111111-1111-4111-8111-a00000000004','udhar','Udhar / Credit',1,'1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z');`,
+
+  // Seed default roles locally (mirrors 0007).
+  `INSERT OR IGNORE INTO roles (id, operation_id, code, name, permissions, created_at, updated_at) VALUES
+    ('22222222-2222-4222-8222-000000000001','22222222-2222-4222-8222-a00000000001','admin','Administrator','{"all":true}','1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z'),
+    ('22222222-2222-4222-8222-000000000002','22222222-2222-4222-8222-a00000000002','manager','Manager','{"sales":true,"inventory":true,"reports":true,"expenses":true,"customers":true}','1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z'),
+    ('22222222-2222-4222-8222-000000000003','22222222-2222-4222-8222-a00000000003','cashier','Cashier','{"sales":true,"customers":true}','1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z'),
+    ('22222222-2222-4222-8222-000000000004','22222222-2222-4222-8222-a00000000004','salesman','Salesman','{"sales":true}','1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z');`,
+
+  // Seed default admin locally (admin/admin, mirrors 0007).
+  `INSERT OR IGNORE INTO staff_users (id, operation_id, username, password_hash, role, full_name, is_active, can_view_expiry, require_pin_on_sale, permissions, created_at, updated_at) VALUES
+    ('33333333-3333-4333-8333-000000000001','33333333-3333-4333-8333-a00000000001','admin','0123456789abcdef0123456789abcdef:ff4c24ac0f96496324ebdf9cc8cb881671120fae0bd19b6a3d5169c93c7c4983:bb70727b9b05956cf567bb836398104206ff7b6bfc768c3292e180a80b374390','admin','Administrator',1,1,0,'{"all":true}','1970-01-01T00:00:00.000Z','1970-01-01T00:00:00.000Z');`,
 ];
 
 /**

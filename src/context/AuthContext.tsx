@@ -3,10 +3,7 @@ import { User } from '../types';
 import { sonner } from '../lib/sonner';
 import { initDb } from '../lib/db';
 import { initDataLayer, pullNow } from '../data';
-import {
-  isFirstLaunch as checkFirstLaunch,
-  loginWithPin,
-} from '../lib/auth/localAuthService';
+import { loginWithPin } from '../lib/auth/localAuthService';
 import { useUsersStore } from '../stores/usersStore';
 
 interface AuthContextType {
@@ -34,7 +31,6 @@ export { hashPasswordString } from '../lib/authUtils';
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isFirstLaunch, setIsFirstLaunch] = useState(false);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
   const setCurrentUser = useUsersStore((s) => s.setCurrentUser);
 
@@ -57,34 +53,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function initAuth() {
       try {
         await initDb();
-        // Bring up the Supabase-only data layer (mirror + push/pull workers). The initial pull
-        // is time-boxed so boot never hangs offline.
+        // Bring up the Supabase-only data layer (mirror + push/pull workers).
         try {
           await initDataLayer();
         } catch (e) {
           console.warn('[dataLayer] init skipped:', (e as Error).message);
-        }
-        let firstLaunch = await checkFirstLaunch();
-
-        // Guard against the "setup screen flashes on first load, gone after refresh" race:
-        // a fresh device's local mirror is empty until the first pull lands staff_users. If we
-        // look "first launch" but we're ONLINE, poll for a real pull (up to ~12s) before deciding
-        // — only a genuinely empty cloud (or a truly offline fresh device) shows First-Time Setup.
-        if (firstLaunch && typeof navigator !== 'undefined' && navigator.onLine) {
-          const deadline = Date.now() + 12000;
-          while (mounted && Date.now() < deadline) {
-            try { await pullNow(); } catch { /* keep polling */ }
-            firstLaunch = await checkFirstLaunch();
-            if (!firstLaunch) break;
-            await new Promise((r) => setTimeout(r, 700));
-          }
-        }
-        if (!mounted) return;
-
-        if (firstLaunch) {
-          setIsFirstLaunch(true);
-          setLoading(false);
-          return;
         }
 
         // Check if there was a saved session
@@ -96,9 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.error('Local auth initialization error:', err);
-        if (mounted) {
-          setIsFirstLaunch(true);
-        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -160,7 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const onBootstrapComplete = (adminUser: User) => {
-    setIsFirstLaunch(false);
     applyUserSession(adminUser);
   };
 
@@ -171,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile,
         session: profile ? ({ user: profile } as any) : null,
         loading,
-        isFirstLaunch,
+        isFirstLaunch: false,
         signInWithPin,
         signIn,
         signUp,

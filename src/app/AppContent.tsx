@@ -4,7 +4,6 @@ import { useApp } from '../context/SupabaseAppContext';
 import { useTouchKeyboard } from '../providers/TouchKeyboardProvider';
 import { useState, useEffect, Suspense } from 'react';
 import { PinLoginPage } from '../components/auth/PinLoginPage';
-import { FirstLaunchSetupModal } from '../components/auth/FirstLaunchSetupModal';
 import { FastLockModal } from '../components/auth/FastLockModal';
 import { Header } from '../components/layout/Header';
 import { SkeletonLoader } from '../shared/ui/SkeletonLoader';
@@ -21,7 +20,7 @@ export function AppContent() {
   const appSyncProgress = useSettingsStore(s => s.syncProgress);
   const appCurrentUser = useUsersStore(s => s.currentUser);
 
-  const { user, loading, isFirstLaunch, onBootstrapComplete } = useAuth();
+  const { user, loading } = useAuth();
   useApp();
   useTouchKeyboard();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -90,9 +89,7 @@ export function AppContent() {
         <SkeletonLoader type="list" count={8} />
       ) : (
         <div dir="ltr" className="fixed inset-0 w-full bg-gray-50 dark:bg-app flex flex-col overflow-hidden">
-          {isFirstLaunch ? (
-            <FirstLaunchSetupModal open={isFirstLaunch} onComplete={onBootstrapComplete} />
-          ) : !user || !appCurrentUser || !appCurrentUser.active ? (
+          {!user || !appCurrentUser || !appCurrentUser.active ? (
             <PinLoginPage />
           ) : (
         <>
