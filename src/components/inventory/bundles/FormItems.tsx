@@ -66,7 +66,7 @@ export function FormItems({
         {Boolean(showProductPicker) && productSearch.trim().length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-1 z-50">
             <SharedProductList
-              items={filteredSearchProducts.slice(0, 10).map(p => ({
+              items={filteredSearchProducts.slice(0, 50).map(p => ({
                 id: p.id,
                 title: p.name,
                 thumbnailUrl: p.image,
