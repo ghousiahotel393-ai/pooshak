@@ -224,11 +224,11 @@ export function BarcodeSidebar({
                     <SectionTitle>Content Options</SectionTitle>
                     <div className="grid grid-cols-3 gap-1.5">
                         {([
-                            { label: "Name", val: showName, set: setShowName },
-                            { label: "Price", val: showPrice, set: setShowPrice },
-                            { label: "SKU", val: showSku, set: setShowSku },
-                            { label: "Category", val: showCategory, set: setShowCategory },
-                            { label: "Border", val: labelBorder, set: setLabelBorder },
+                            { label: "Name", val: Boolean(showName), set: setShowName },
+                            { label: "Price", val: Boolean(showPrice), set: setShowPrice },
+                            { label: "SKU", val: Boolean(showSku), set: setShowSku },
+                            { label: "Category", val: Boolean(showCategory), set: setShowCategory },
+                            { label: "Border", val: Boolean(labelBorder), set: setLabelBorder },
                         ] as const).map(({ label, val, set }) => (
                             <button key={label} onClick={() => (set as any)(!val)}
                                 className={`py-1 rounded border text-[11px] font-medium transition-colors ${val

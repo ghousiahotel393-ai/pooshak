@@ -88,7 +88,7 @@ export function BarcodeCard({
                 alignItems: 'center', justifyContent: 'center',
                 gap: `${Math.max(2, Math.round(4 * ratio))}px`,
             }}>
-                {showName && (
+                {Boolean(showName) ? (
                     <p style={{
                         fontSize: `${fs.name}px`, fontWeight: 900,
                         lineHeight: `${fs.nameLH}px`, textTransform: 'uppercase',
@@ -99,24 +99,24 @@ export function BarcodeCard({
                         WebkitBoxOrient: 'vertical' as const,
                         overflow: 'hidden',
                     }}>{product.name}</p>
-                )}
+                ) : null}
 
-                {(showPrice || showCategory) && (
+                {(Boolean(showPrice) || Boolean(showCategory && product.category)) ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, justifyContent: 'center', flexWrap: 'wrap', maxWidth: '100%' }}>
-                        {showPrice && <p style={{ fontSize: `${fs.price}px`, fontWeight: 900, color: '#059669', margin: 0, whiteSpace: 'nowrap' }}>{formatCurrency(product.price, currency)}</p>}
-                        {showCategory && <p style={{ fontSize: `${fs.cat}px`, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{product.category}</p>}
+                        {Boolean(showPrice) ? <p style={{ fontSize: `${fs.price}px`, fontWeight: 900, color: '#059669', margin: 0, whiteSpace: 'nowrap' }}>{formatCurrency(product.price, currency)}</p> : null}
+                        {Boolean(showCategory && product.category) ? <p style={{ fontSize: `${fs.cat}px`, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{product.category}</p> : null}
                     </div>
-                )}
+                ) : null}
 
-                {showSku && product.sku && (
+                {Boolean(showSku && product.sku) ? (
                     <p style={{ fontSize: `${fs.sku}px`, color: '#9ca3af', fontFamily: 'monospace', margin: 0, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
                         SKU: {product.sku}
                     </p>
-                )}
+                ) : null}
 
-                {val && (showBarcode || showQr) ? (
+                {val && (Boolean(showBarcode) || Boolean(showQr)) ? (
                     <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', minHeight: 0 }}>
-                        {showBarcode && (
+                        {Boolean(showBarcode) ? (
                             <div style={{
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -165,8 +165,8 @@ export function BarcodeCard({
                                     {val}
                                 </p>
                             </div>
-                        )}
-                        {showQr && (
+                        ) : null}
+                        {Boolean(showQr) ? (
                             <div style={{
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -219,7 +219,7 @@ export function BarcodeCard({
                                     Scan With Camera
                                 </p>
                             </div>
-                        )}
+                        ) : null}
                     </div>
                 ) : (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

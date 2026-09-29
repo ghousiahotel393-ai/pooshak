@@ -16,6 +16,14 @@ const getStoredSettings = () => {
   }
 };
 
+const toBool = (val: any, fallback: boolean): boolean => {
+  if (val === undefined || val === null) return fallback;
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'number') return val === 1;
+  if (typeof val === 'string') return val === 'true' || val === '1';
+  return Boolean(val);
+};
+
 export function useBarcodeSettings() {
   const appSettings = useSettingsStore(s => s.settings);
   const stored = getStoredSettings() || {};
@@ -23,16 +31,16 @@ export function useBarcodeSettings() {
   const [paperSize, setPaperSize] = useState<PaperSize>(stored.paperSize || (appSettings.barcodePaperSize as PaperSize) || 'A4');
   const [a4Columns, setA4Columns] = useState<number>(stored.a4Columns ?? appSettings.barcodeA4Columns ?? 3);
   const [a4Rows, setA4Rows] = useState<number>(stored.a4Rows ?? appSettings.barcodeA4Rows ?? 10);
-  const [showPrice, setShowPrice] = useState<boolean>(stored.showPrice ?? appSettings.barcodeShowPrice ?? true);
-  const [showName, setShowName] = useState<boolean>(stored.showName ?? appSettings.barcodeShowName ?? true);
-  const [showSku, setShowSku] = useState<boolean>(stored.showSku ?? appSettings.barcodeShowSku ?? false);
-  const [showCategory, setShowCategory] = useState<boolean>(stored.showCategory ?? appSettings.barcodeShowCategory ?? false);
+  const [showPrice, setShowPrice] = useState<boolean>(toBool(stored.showPrice ?? appSettings.barcodeShowPrice, true));
+  const [showName, setShowName] = useState<boolean>(toBool(stored.showName ?? appSettings.barcodeShowName, true));
+  const [showSku, setShowSku] = useState<boolean>(toBool(stored.showSku ?? appSettings.barcodeShowSku, false));
+  const [showCategory, setShowCategory] = useState<boolean>(toBool(stored.showCategory ?? appSettings.barcodeShowCategory, false));
   const [barcodeScale, setBarcodeScale] = useState<number>(stored.barcodeScale ?? appSettings.barcodeScale ?? 1.0);
   const [barcodeHeight, setBarcodeHeight] = useState<number>(stored.barcodeHeight ?? appSettings.barcodeHeight ?? 30);
   const [labelPadding, setLabelPadding] = useState<number>(stored.labelPadding ?? appSettings.barcodePadding ?? 8);
-  const [labelBorder, setLabelBorder] = useState<boolean>(stored.labelBorder ?? appSettings.barcodeBorder ?? true);
-  const [showBarcode, setShowBarcode] = useState<boolean>(stored.showBarcode ?? appSettings.barcodeShowBarcode ?? true);
-  const [showQr, setShowQr] = useState<boolean>(stored.showQr ?? appSettings.barcodeShowQr ?? false);
+  const [labelBorder, setLabelBorder] = useState<boolean>(toBool(stored.labelBorder ?? appSettings.barcodeBorder, true));
+  const [showBarcode, setShowBarcode] = useState<boolean>(toBool(stored.showBarcode ?? appSettings.barcodeShowBarcode, true));
+  const [showQr, setShowQr] = useState<boolean>(toBool(stored.showQr ?? appSettings.barcodeShowQr, false));
   const [qrSize, setQrSize] = useState<number>(stored.qrSize ?? appSettings.barcodeQrSize ?? 30);
   const [nameLines, setNameLines] = useState<1 | 2>(stored.nameLines ?? (appSettings.barcodeNameLines as 1 | 2) ?? 1);
   const [barcodeFontSize, setBarcodeFontSize] = useState<number>(stored.barcodeFontSize ?? appSettings.barcodeFontSize ?? 8);

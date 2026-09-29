@@ -1,6 +1,14 @@
 import { AppSettings } from '../../types';
 import { SETTINGS_ID } from '../ids';
 
+const toBool = (val: any, fallback: boolean): boolean => {
+  if (val === undefined || val === null) return fallback;
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'number') return val === 1;
+  if (typeof val === 'string') return val === 'true' || val === '1';
+  return Boolean(val);
+};
+
 export const mapSettings = (item: any): AppSettings => {
   if (!item) return null as any;
   const s = item;
@@ -25,23 +33,23 @@ export const mapSettings = (item: any): AppSettings => {
     receiptDensity: s.receipt_density ?? s.receiptDensity ?? 'normal',
     receiptHeader: s.receipt_header ?? s.receiptHeader,
     receiptFooter: s.receipt_footer ?? s.receiptFooter,
-    receiptShowLogo: s.receipt_show_logo ?? s.receiptShowLogo ?? true,
-    receiptShowFooter: s.receipt_show_footer ?? s.receiptShowFooter ?? true,
-    receiptShowTax: s.receipt_show_tax ?? s.receiptShowTax ?? true,
-    receiptShowDiscount: s.receipt_show_discount ?? s.receiptShowDiscount ?? true,
-    receiptShowStoreName: s.receipt_show_store_name ?? s.receiptShowStoreName ?? true,
-    receiptShowStoreAddress: s.receipt_show_store_address ?? s.receiptShowStoreAddress ?? true,
-    receiptShowStorePhone: s.receipt_show_store_phone ?? s.receiptShowStorePhone ?? true,
-    receiptShowStoreEmail: s.receipt_show_store_email ?? s.receiptShowStoreEmail ?? true,
-    receiptShowCustomerName: s.receipt_show_customer_name ?? s.receiptShowCustomerName ?? true,
-    receiptShowCustomerPhone: s.receipt_show_customer_phone ?? s.receiptShowCustomerPhone ?? true,
-    receiptShowNotes: s.receipt_show_notes ?? s.receiptShowNotes ?? true,
-    receiptShowDeliveryAddress: s.receipt_show_delivery_address ?? s.receiptShowDeliveryAddress ?? true,
-    receiptShowQrCode: s.receipt_show_qr_code ?? s.receiptShowQrCode ?? true,
-    receiptShowBarcode: s.receipt_show_barcode ?? s.receiptShowBarcode ?? true,
+    receiptShowLogo: toBool(s.receipt_show_logo ?? s.receiptShowLogo, true),
+    receiptShowFooter: toBool(s.receipt_show_footer ?? s.receiptShowFooter, true),
+    receiptShowTax: toBool(s.receipt_show_tax ?? s.receiptShowTax, true),
+    receiptShowDiscount: toBool(s.receipt_show_discount ?? s.receiptShowDiscount, true),
+    receiptShowStoreName: toBool(s.receipt_show_store_name ?? s.receiptShowStoreName, true),
+    receiptShowStoreAddress: toBool(s.receipt_show_store_address ?? s.receiptShowStoreAddress, true),
+    receiptShowStorePhone: toBool(s.receipt_show_store_phone ?? s.receiptShowStorePhone, true),
+    receiptShowStoreEmail: toBool(s.receipt_show_store_email ?? s.receiptShowStoreEmail, true),
+    receiptShowCustomerName: toBool(s.receipt_show_customer_name ?? s.receiptShowCustomerName, true),
+    receiptShowCustomerPhone: toBool(s.receipt_show_customer_phone ?? s.receiptShowCustomerPhone, true),
+    receiptShowNotes: toBool(s.receipt_show_notes ?? s.receiptShowNotes, true),
+    receiptShowDeliveryAddress: toBool(s.receipt_show_delivery_address ?? s.receiptShowDeliveryAddress, true),
+    receiptShowQrCode: toBool(s.receipt_show_qr_code ?? s.receiptShowQrCode, true),
+    receiptShowBarcode: toBool(s.receipt_show_barcode ?? s.receiptShowBarcode, true),
     receiptTemplate: s.receipt_template ?? s.receiptTemplate ?? 'modern',
     receiptFontScale: s.receipt_font_scale ?? s.receiptFontScale ?? 1.0,
-    receiptFontBold: s.receipt_font_bold ?? s.receiptFontBold ?? false,
+    receiptFontBold: toBool(s.receipt_font_bold ?? s.receiptFontBold, false),
     receiptFontWeight: s.receipt_font_weight ?? s.receiptFontWeight ?? 400,
 
     // Receipt Calibration
@@ -57,14 +65,14 @@ export const mapSettings = (item: any): AppSettings => {
     barcodePaperSize: s.barcode_paper_size ?? s.barcodePaperSize ?? 'A4',
     barcodeA4Columns: s.barcode_a4_columns ?? s.barcodeA4Columns ?? 3,
     barcodeA4Rows: s.barcode_a4_rows ?? s.barcodeA4Rows ?? 10,
-    barcodeShowPrice: s.barcode_show_price ?? s.barcodeShowPrice ?? true,
-    barcodeShowName: s.barcode_show_name ?? s.barcodeShowName ?? true,
-    barcodeShowSku: s.barcode_show_sku ?? s.barcodeShowSku ?? false,
-    barcodeShowCategory: s.barcode_show_category ?? s.barcodeShowCategory ?? false,
+    barcodeShowPrice: toBool(s.barcode_show_price ?? s.barcodeShowPrice, true),
+    barcodeShowName: toBool(s.barcode_show_name ?? s.barcodeShowName, true),
+    barcodeShowSku: toBool(s.barcode_show_sku ?? s.barcodeShowSku, false),
+    barcodeShowCategory: toBool(s.barcode_show_category ?? s.barcodeShowCategory, false),
     barcodeScale: s.barcode_scale ?? s.barcodeScale ?? 1.0,
     barcodeHeight: s.barcode_height ?? s.barcodeHeight ?? 30,
     barcodePadding: s.barcode_padding ?? s.barcodePadding ?? 8,
-    barcodeBorder: s.barcode_border ?? s.barcodeBorder ?? true,
+    barcodeBorder: toBool(s.barcode_border ?? s.barcodeBorder, true),
     barcodeType: s.barcode_type ?? s.barcodeType ?? 'BARCODE',
     barcodeNameLines: s.barcode_name_lines ?? s.barcodeNameLines ?? 1,
     barcodeFontSize: s.barcode_font_size ?? s.barcodeFontSize ?? 8,
@@ -76,13 +84,13 @@ export const mapSettings = (item: any): AppSettings => {
     barcodeBarWidth: Number(s.barcode_bar_width ?? s.barcodeBarWidth ?? 0.8),
 
     // Toggles & System
-    retailEnabled: s.retail_enabled ?? s.retailEnabled ?? true,
-    wholesaleEnabled: s.wholesale_enabled ?? s.wholesaleEnabled ?? false,
+    retailEnabled: toBool(s.retail_enabled ?? s.retailEnabled, true),
+    wholesaleEnabled: toBool(s.wholesale_enabled ?? s.wholesaleEnabled, false),
     defaultSaleType: s.default_sale_type ?? s.defaultSaleType ?? 'retail',
-    touchKeyboardEnabled: s.touch_keyboard_enabled ?? s.touchKeyboardEnabled ?? false,
-    soundEnabled: s.sound_enabled ?? s.soundEnabled ?? true,
-    autoBackup: s.auto_backup ?? s.autoBackup ?? true,
-    receiptPrinter: s.receipt_printer ?? s.receiptPrinter ?? false,
+    touchKeyboardEnabled: toBool(s.touch_keyboard_enabled ?? s.touchKeyboardEnabled, false),
+    soundEnabled: toBool(s.sound_enabled ?? s.soundEnabled, true),
+    autoBackup: toBool(s.auto_backup ?? s.autoBackup, true),
+    receiptPrinter: toBool(s.receipt_printer ?? s.receiptPrinter, false),
 
     invoicePrefix: s.invoice_prefix ?? s.invoicePrefix ?? 'INV',
     invoiceCounter: s.invoice_counter ?? s.invoiceCounter ?? 1000,
@@ -93,33 +101,33 @@ export const mapSettings = (item: any): AppSettings => {
 
     // SaaS
     subscriptionTier: s.subscription_tier ?? s.subscriptionTier ?? 'free',
-    isLocked: s.is_locked ?? s.isLocked ?? false,
-    aiV2Enabled: s.ai_v2_enabled ?? s.aiV2Enabled ?? false,
+    isLocked: toBool(s.is_locked ?? s.isLocked, false),
+    aiV2Enabled: toBool(s.ai_v2_enabled ?? s.aiV2Enabled, false),
     posGridColumns: s.pos_grid_columns ?? s.posGridColumns ?? 4,
-    enableSplitPayment: s.enable_split_payment ?? s.enableSplitPayment ?? false,
-    enableExtraCharges: s.enable_extra_charges ?? s.enableExtraCharges ?? false,
-    enableKotPrinter: s.enable_kot_printer ?? s.enableKotPrinter ?? false,
-    autoSaveReceiptPng: s.auto_save_receipt_png ?? s.autoSaveReceiptPng ?? false,
+    enableSplitPayment: toBool(s.enable_split_payment ?? s.enableSplitPayment, false),
+    enableExtraCharges: toBool(s.enable_extra_charges ?? s.enableExtraCharges, false),
+    enableKotPrinter: toBool(s.enable_kot_printer ?? s.enableKotPrinter, false),
+    autoSaveReceiptPng: toBool(s.auto_save_receipt_png ?? s.autoSaveReceiptPng, false),
 
     // §4.2 MASTER: negative stock control (default FALSE = spec compliant, oversell blocked)
-    allowNegativeStock: s.allow_negative_stock ?? s.allowNegativeStock ?? false,
+    allowNegativeStock: toBool(s.allow_negative_stock ?? s.allowNegativeStock, false),
 
     // RBAC: refund approval threshold (admin override above this amount)
     refundApprovalThreshold: Number(s.refund_approval_threshold ?? s.refundApprovalThreshold ?? 5000),
 
     // Credit Sales System
-    enableCreditSales: s.enable_credit_sales ?? s.enableCreditSales ?? true,
-    cashierCanCredit: s.cashier_can_credit ?? s.cashierCanCredit ?? true,
-    allowCreditOverLimit: s.allow_credit_over_limit ?? s.allowCreditOverLimit ?? false,
+    enableCreditSales: toBool(s.enable_credit_sales ?? s.enableCreditSales, true),
+    cashierCanCredit: toBool(s.cashier_can_credit ?? s.cashierCanCredit, true),
+    allowCreditOverLimit: toBool(s.allow_credit_over_limit ?? s.allowCreditOverLimit, false),
 
     // Purchase Orders
-    enablePurchaseOrders: s.enable_purchase_orders ?? s.enablePurchaseOrders ?? true,
+    enablePurchaseOrders: toBool(s.enable_purchase_orders ?? s.enablePurchaseOrders, true),
 
     // Localization
     language: s.language ?? 'en',
 
     // Invoice / PO numbering
-    customReceiptNumber: s.custom_receipt_number ?? s.customReceiptNumber ?? false,
+    customReceiptNumber: toBool(s.custom_receipt_number ?? s.customReceiptNumber, false),
     poPrefix: s.po_prefix ?? s.poPrefix ?? 'PO',
     poCounter: s.po_counter ?? s.poCounter ?? 1000,
 
