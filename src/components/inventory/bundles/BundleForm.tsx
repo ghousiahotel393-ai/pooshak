@@ -46,9 +46,14 @@ export function BundleForm({ editingBundle, products, appSettings, onClose }: Bu
 
   const currencySymbol = formatCurrency(0, appSettings.currency).replace('0', '').trim();
 
+  const searchQuery = productSearch.trim().toLowerCase();
   const filteredSearchProducts = products.filter(p =>
     p.active !== false &&
-    p.name?.toLowerCase().includes(productSearch.toLowerCase())
+    (
+      (p.name && p.name.toLowerCase().includes(searchQuery)) ||
+      (p.barcode && p.barcode.toLowerCase().includes(searchQuery)) ||
+      (p.sku && p.sku.toLowerCase().includes(searchQuery))
+    )
   );
 
   const addProduct = (product: Product) => {
