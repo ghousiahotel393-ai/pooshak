@@ -48,6 +48,18 @@ async function initSqlJsEngine(): Promise<SqlJsStatic> {
   });
 }
 
+/**
+ * Compile the sql.js wasm engine ONCE and share it across every driver instance. The app opens
+ * two SQLite DBs (legacy + cloud mirror); without this each instance re-fetched and re-compiled
+ * the ~1MB wasm on every boot, doubling cold-start cost. The compiled engine is a stateless
+ * factory, so sharing it is safe (each DB still holds its own data).
+ */
+let sqlJsEnginePromise: Promise<SqlJsStatic> | null = null;
+function getSqlJsEngine(): Promise<SqlJsStatic> {
+  if (!sqlJsEnginePromise) sqlJsEnginePromise = initSqlJsEngine();
+  return sqlJsEnginePromise;
+}
+
 export class WasmSqliteDriver implements ISqliteDriver {
   readonly name = 'WasmSqliteDriver';
   readonly platform = 'wasm' as const;
@@ -67,7 +79,7 @@ export class WasmSqliteDriver implements ISqliteDriver {
     this.storageKey = idbKeyFor(dbName);
 
     if (!this.sqlJs) {
-      this.sqlJs = await initSqlJsEngine();
+      this.sqlJs = await getSqlJsEngine();
     }
 
     const savedBinary = await this.loadFromIndexedDB();
@@ -182,7 +194,7 @@ export class WasmSqliteDriver implements ISqliteDriver {
 
   async importBinary(binary: Uint8Array): Promise<void> {
     if (!this.sqlJs) {
-      this.sqlJs = await initSqlJsEngine();
+      this.sqlJs = await getSqlJsEngine();
     }
     if (this.db) {
       this.db.close();

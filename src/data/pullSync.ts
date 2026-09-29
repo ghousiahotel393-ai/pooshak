@@ -124,9 +124,18 @@ async function pullTable(table: SyncedTable): Promise<number> {
 export async function pullAll(): Promise<Record<string, number>> {
   await ensureCursorTable();
   const result: Record<string, number> = {};
-  for (const table of SYNCED_TABLES) {
-    result[table] = await pullTable(table);
-  }
+  // Pull tables with bounded concurrency so ~39 tables don't run as a strict one-by-one
+  // network waterfall. Local writes inside pullTable are still serialized by the DB mutex.
+  const CONCURRENCY = 5;
+  const tables = [...SYNCED_TABLES];
+  let next = 0;
+  const worker = async () => {
+    while (next < tables.length) {
+      const table = tables[next++];
+      result[table] = await pullTable(table);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, tables.length) }, worker));
   return result;
 }
 
