@@ -91,10 +91,15 @@ export class WasmSqliteDriver implements ISqliteDriver {
 
     this._isOpen = true;
 
-    // Flush to IndexedDB on page refresh or window close
+    // Flush the debounced save to IndexedDB before the page goes away. `pagehide` +
+    // `visibilitychange→hidden` are the reliable signals on mobile (beforeunload often doesn't
+    // fire there), so a pending write is never lost on backgrounding/close.
     if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => {
-        this.persistToIndexedDB().catch(() => {});
+      const flushOnHide = () => { this.flush().catch(() => {}); };
+      window.addEventListener('beforeunload', flushOnHide);
+      window.addEventListener('pagehide', flushOnHide);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushOnHide();
       });
     }
 
@@ -175,7 +180,10 @@ export class WasmSqliteDriver implements ISqliteDriver {
     try {
       const result = await fn(tx);
       this.db!.run('COMMIT;');
-      await this.persistToIndexedDB();
+      // Coalesce persistence (debounced) instead of exporting the whole DB on every commit —
+      // keeps the local commit fast (<10ms goal, AGENTS.md §2.1) as the DB grows. Durability is
+      // backed by the sync_queue + cloud (source of truth) and the flush-on-hide handlers.
+      this.scheduleSave();
       return result;
     } catch (error) {
       try {

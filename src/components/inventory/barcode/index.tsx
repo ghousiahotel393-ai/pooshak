@@ -19,13 +19,8 @@ interface BarcodeGeneratorProps {
 
 const A4_W = 794;
 
-export let persistedBarcodeProducts: Product[] = [];
-export let persistedBarcodeQuantities: Record<string, number> = {};
-
-export function clearPersistedBarcodeState() {
-    persistedBarcodeProducts = [];
-    persistedBarcodeQuantities = {};
-}
+export { persistedBarcodeProducts, persistedBarcodeQuantities, clearPersistedBarcodeState } from './useBarcodeBatchState';
+import { useBarcodeBatchState } from './useBarcodeBatchState';
 
 export function BarcodeGenerator({ products, onClose, onProductsChange, onClearAll }: BarcodeGeneratorProps) {
     const settings = useBarcodeSettings();
@@ -36,116 +31,11 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
         showPrice, showName, showCategory, showSku, appSettings
     } = settings;
 
-    const [localProducts, setLocalProducts] = useState<Product[]>(() => {
-        return persistedBarcodeProducts.length > 0 ? persistedBarcodeProducts : products;
-    });
-
-    const [quantities, setQuantities] = useState<Record<string, number>>(() => {
-        if (Object.keys(persistedBarcodeQuantities).length > 0) return persistedBarcodeQuantities;
-        try {
-            const saved = localStorage.getItem('barcode_selected_quantities');
-            if (saved) return JSON.parse(saved);
-        } catch {
-            // ignore JSON error
-        }
-        // Start empty — the seed effect below fills each product's default from its
-        // unprinted count (falling back to 1) once the unprinted map is computed.
-        return {};
-    });
-
-    const [unprintedMap, setUnprintedMap] = useState<Record<string, number>>({});
-
-    const refreshUnprinted = useCallback(async (prods: Product[]) => {
-        if (prods.length === 0) return;
-        const unprinted = await calculateUnprintedQuantities(prods);
-        setUnprintedMap(unprinted);
-    }, []);
-
-    useEffect(() => {
-        refreshUnprinted(localProducts);
-    }, [localProducts, refreshUnprinted]);
-
-    useEffect(() => {
-        persistedBarcodeProducts = localProducts;
-        persistedBarcodeQuantities = quantities;
-        try {
-            localStorage.setItem('barcode_selected_quantities', JSON.stringify(quantities));
-        } catch {
-            // ignore storage error
-        }
-        if (onProductsChange) onProductsChange(localProducts);
-    }, [localProducts, quantities, onProductsChange]);
-
-    useEffect(() => {
-        if (products.length > 0 && localProducts.length === 0) {
-            setLocalProducts(products);
-        }
-    }, [products, localProducts.length]);
-
-    // Auto-load: seed each newly-selected product's default quantity from its own unprinted
-    // count (>0), else 1. Persisted or manually-set quantities are never overwritten.
-    const seededRef = useRef<Set<string>>(new Set());
-    useEffect(() => {
-        const present = new Set(localProducts.map(p => p.id));
-        for (const id of Array.from(seededRef.current)) {
-            if (!present.has(id)) seededRef.current.delete(id);
-        }
-        setQuantities(prev => {
-            const next = { ...prev };
-            let changed = false;
-            for (const p of localProducts) {
-                if (seededRef.current.has(p.id)) continue;
-                if (prev[p.id] !== undefined) { seededRef.current.add(p.id); continue; }
-                if (p.id in unprintedMap) {
-                    const u = unprintedMap[p.id];
-                    next[p.id] = u > 0 ? u : 1;
-                    seededRef.current.add(p.id);
-                    changed = true;
-                }
-            }
-            return changed ? next : prev;
-        });
-    }, [localProducts, unprintedMap]);
-
-    const updateQty = (id: string, d: number) => {
-        setQuantities(prev => ({
-            ...prev,
-            [id]: Math.max(0, (prev[id] !== undefined ? prev[id] : 1) + d)
-        }));
-    };
-
-    const setGlobalQty = (qty: number) => {
-        const q: Record<string, number> = {};
-        localProducts.forEach(p => { q[p.id] = Math.max(0, qty); });
-        setQuantities(q);
-    };
-
-    const handleLoadUnprinted = () => {
-        setQuantities(prev => {
-            const next = { ...prev };
-            localProducts.forEach(p => {
-                const unprinted = unprintedMap[p.id];
-                next[p.id] = (unprinted !== undefined && unprinted > 0) ? unprinted : (prev[p.id] || 1);
-            });
-            return next;
-        });
-        sonner.success('Loaded unprinted batch quantities!');
-    };
-
-    const handleClearAll = () => {
-        setLocalProducts([]);
-        setQuantities({});
-        clearPersistedBarcodeState();
-        try {
-            localStorage.removeItem('barcode_selected_product_ids');
-            localStorage.removeItem('barcode_selected_quantities');
-        } catch {
-            // ignore
-        }
-        if (onClearAll) onClearAll();
-        if (onProductsChange) onProductsChange([]);
-        sonner.success('Cleared all items & quantities');
-    };
+    const {
+        localProducts, setLocalProducts, quantities, setQuantities,
+        unprintedMap, refreshUnprinted, updateQty, setGlobalQty,
+        handleLoadUnprinted, handleClearAll,
+    } = useBarcodeBatchState({ products, onProductsChange, onClearAll });
 
     const isThermal = paperSize !== 'A4';
     const totalLabels = localProducts.reduce((sum, p) => sum + (quantities[p.id] || 0), 0);

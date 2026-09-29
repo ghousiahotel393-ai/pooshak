@@ -2,6 +2,8 @@ import html2canvas from 'html2canvas';
 import { formatCurrency } from '../../../lib/currencies';
 import { formatAppDate } from '../../../lib/dateUtils';
 import { sonner } from '../../../lib/sonner';
+import { openExternalLink } from '../../../lib/urlHelper';
+import { CURRENCY_DIAL_CODE } from '../../customers/customerManagerUtils';
 
 export function buildPrintHtml(
   innerHTML: string,
@@ -200,9 +202,20 @@ export function triggerDownload(blob: Blob, fileName: string) {
 
 export function openWhatsAppReceipt(sale: any, settings: any, currencyCode: string, showDiscount: boolean) {
   if (!sale.customerPhone) return;
-  const cleanPhone = sale.customerPhone.replace(/\D/g, '');
-  const itemsList = sale.items
-    .map((item: any, idx: number) => `${idx + 1}. ${item.product.name} (x${item.quantity}): ${formatCurrency(item.product.price, currencyCode)}`)
+  let digits = String(sale.customerPhone).replace(/\D/g, '');
+  if (!digits) return;
+
+  const dialCode = CURRENCY_DIAL_CODE[currencyCode] || '92';
+  if (!digits.startsWith(dialCode)) {
+    if (digits.startsWith('0')) {
+      digits = dialCode + digits.substring(1);
+    } else {
+      digits = dialCode + digits;
+    }
+  }
+
+  const itemsList = (sale.items || [])
+    .map((item: any, idx: number) => `${idx + 1}. ${item.product?.name || item.name || 'Item'} (x${item.quantity}): ${formatCurrency(item.product?.price ?? item.price ?? 0, currencyCode)}`)
     .join('\n');
 
   let message = `*${settings.storeName} - Digital Receipt*\n\n` +
@@ -224,5 +237,5 @@ export function openWhatsAppReceipt(sale: any, settings: any, currencyCode: stri
 
   message += `\n*Total: ${formatCurrency(sale.total, currencyCode)}*\n\n` +
     `_Software by Zaynah Developers_`;
-  window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+  openExternalLink(`https://wa.me/${digits}?text=${encodeURIComponent(message)}`);
 }

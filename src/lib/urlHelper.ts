@@ -4,13 +4,19 @@
  * For Web/PWA, it uses window.open.
  */
 export const openExternalLink = (url: string) => {
-  const isElectron = !!(window as any).electronAPI;
+  const electron = (window as any)?.electronAPI;
 
-  if (isElectron) {
-    (window as any).electronAPI.openExternal(url);
-  } else {
-    window.open(url, '_blank', 'noopener,noreferrer');
+  if (electron) {
+    if (typeof electron.shell?.openExternal === 'function') {
+      electron.shell.openExternal(url);
+      return;
+    }
+    if (typeof electron.openExternal === 'function') {
+      electron.openExternal(url);
+      return;
+    }
   }
+  window.open(url, '_blank', 'noopener,noreferrer');
 };
 
 /**

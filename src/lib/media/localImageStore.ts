@@ -181,6 +181,60 @@ export async function getImageUrl(hash: string): Promise<string | null> {
 
 const BUCKET = 'product-images';
 
+// Downscaled grid thumbnails, keyed by `${hash}@${size}`. Grid cards render these small bitmaps
+// instead of decoding the full-resolution image on every scroll (big win on low-end devices).
+const thumbCache = new Map<string, string>();
+
+/**
+ * Return a small downscaled object URL for a content-addressed image (for grid cards). Decodes
+ * the full image once, downscales it via canvas, caches the tiny blob's URL, and reuses it.
+ * Falls back to the full image URL if canvas isn't available or the image is already small.
+ */
+export async function getThumbnailUrl(hash: string, size = 224): Promise<string | null> {
+  if (!hash) return null;
+  const key = `${hash}@${size}`;
+  const existing = thumbCache.get(key);
+  if (existing) return existing;
+
+  // Ensure the full blob is resolved + cached locally (also handles bucket/source recovery).
+  const fullUrl = await getImageUrl(hash);
+  if (!fullUrl) return null;
+
+  // No canvas/bitmap (SSR/Node) — just use the full image.
+  if (typeof document === 'undefined' || typeof createImageBitmap === 'undefined') return fullUrl;
+
+  const cached = memoryImageCache.get(hash);
+  if (!cached) return fullUrl;
+
+  try {
+    const blob = new Blob([cached.data as any], { type: cached.mimeType });
+    const bitmap = await createImageBitmap(blob);
+    const scale = size / Math.max(bitmap.width, bitmap.height);
+    if (scale >= 1) {
+      // Already small — reuse the original, remember the decision.
+      bitmap.close?.();
+      thumbCache.set(key, fullUrl);
+      return fullUrl;
+    }
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { bitmap.close?.(); return fullUrl; }
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+    const thumbBlob: Blob | null = await new Promise((res) => canvas.toBlob(res, 'image/webp', 0.8));
+    if (!thumbBlob) return fullUrl;
+    const url = URL.createObjectURL(thumbBlob);
+    thumbCache.set(key, url);
+    return url;
+  } catch {
+    return fullUrl;
+  }
+}
+
 /** Upload a content-addressed image blob to Supabase Storage (best-effort, idempotent). */
 async function uploadImageToBucket(hash: string, data: Uint8Array, mimeType: string): Promise<void> {
   try {
@@ -435,6 +489,10 @@ export async function clearImageCache(): Promise<number> {
     if (v.url && typeof URL !== 'undefined' && URL.revokeObjectURL) { try { URL.revokeObjectURL(v.url); } catch {} }
   }
   memoryImageCache.clear();
+  for (const [, u] of thumbCache) {
+    if (typeof URL !== 'undefined' && URL.revokeObjectURL) { try { URL.revokeObjectURL(u); } catch {} }
+  }
+  thumbCache.clear();
   try {
     const db = await openImageIdb();
     await new Promise<void>((resolve) => {

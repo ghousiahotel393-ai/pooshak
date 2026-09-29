@@ -10,9 +10,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { getImageUrl, isImageHash, onImageSaved } from '../lib/media/localImageStore';
+import { getImageUrl, getThumbnailUrl, isImageHash, onImageSaved } from '../lib/media/localImageStore';
 
-export function useProductImage(value: string | undefined | null): string | undefined {
+/**
+ * Resolve a product image value into a renderable URL. Pass `thumbSize` (px) to render a
+ * downscaled grid thumbnail instead of the full-resolution image — much cheaper to decode
+ * while scrolling a large product grid.
+ */
+export function useProductImage(value: string | undefined | null, thumbSize?: number): string | undefined {
   const [url, setUrl] = useState<string | undefined>(() =>
     value && !isImageHash(value) ? value : undefined
   );
@@ -36,7 +41,7 @@ export function useProductImage(value: string | undefined | null): string | unde
     // times with backoff so a slow/failed first fetch self-heals without a manual refresh.
     const RETRY_DELAYS = [800, 2000, 5000];
     const resolve = async (attempt = 0) => {
-      const resolved = await getImageUrl(value);
+      const resolved = thumbSize ? await getThumbnailUrl(value, thumbSize) : await getImageUrl(value);
       if (cancelled) return;
       if (resolved) {
         setUrl(resolved);
@@ -59,7 +64,7 @@ export function useProductImage(value: string | undefined | null): string | unde
       unsub();
       if (typeof window !== 'undefined') window.removeEventListener('online', onOnline);
     };
-  }, [value]);
+  }, [value, thumbSize]);
 
   return url;
 }
