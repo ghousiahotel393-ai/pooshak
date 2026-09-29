@@ -67,6 +67,7 @@ export function useProductDetailData(
   const [toppingLoading, setToppingLoading] = useState(false);
 
   useEffect(() => {
+    if (isEditMode) return;
     setFormData({
       name: product.name,
       sku: product.sku || '',
@@ -90,7 +91,7 @@ export function useProductDetailData(
     setVariantData(product.variantData || []);
     setModifiers(product.modifiers || []);
     setProductAddons(product.productAddons || []);
-  }, [product]);
+  }, [product, isEditMode]);
 
   useEffect(() => {
     setToppingLoading(true);
