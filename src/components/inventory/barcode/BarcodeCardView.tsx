@@ -2,6 +2,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { formatCurrency } from '../../../lib/currencies';
 import { Product } from '../../../types';
 import { BarcodeSVG } from './BarcodeSVG';
+import { fitTitleFontPx } from './barcodeLayout';
 
 export type PaperSize = 'A4'
     | 'Thermal-50x25'
@@ -46,7 +47,7 @@ export function BarcodeCard({
     product,
     labelId,
     isThermal,
-    _paperSize,
+    paperSize: _paperSize,
     labelBorder,
     currency,
     pad,
@@ -88,46 +89,36 @@ export function BarcodeCard({
                 alignItems: 'center', justifyContent: 'center',
                 gap: `${Math.max(2, Math.round(4 * ratio))}px`,
             }}>
-                {Boolean(showName) ? (() => {
-                    const nameLen = product.name.length;
-                    let calcNameFs = fs.name;
-                    if (nameLen > 36) {
-                        calcNameFs = Math.max(6, Math.round(fs.name * 0.72));
-                    } else if (nameLen > 25) {
-                        calcNameFs = Math.max(6.5, Math.round(fs.name * 0.80));
-                    } else if (nameLen > 18 && nameLines > 1) {
-                        calcNameFs = Math.max(7, Math.round(fs.name * 0.88));
-                    }
-                    const calcLineH = Math.max(7, Math.round(calcNameFs * 1.15));
+                {showName ? (() => {
+                    // Fit the FULL title into `nameLines` by shrinking the font — never ellipsis.
+                    const titleFs = fitTitleFontPx(product.name, cellW, pad, fs.name, nameLines, 5);
+                    const calcLineH = Math.max(6, Math.round(titleFs * 1.12));
 
                     return (
                         <p style={{
-                            fontSize: `${calcNameFs}px`,
+                            fontSize: `${titleFs}px`,
                             fontWeight: 900,
                             lineHeight: `${calcLineH}px`,
                             textTransform: 'uppercase',
                             color: '#111827',
                             wordBreak: 'break-word',
+                            overflowWrap: 'anywhere',
                             textAlign: 'center',
                             width: '100%',
                             margin: 0,
                             flexShrink: 0,
-                            display: '-webkit-box',
-                            WebkitLineClamp: nameLines,
-                            WebkitBoxOrient: 'vertical' as const,
-                            overflow: 'hidden',
                         }} title={product.name}>{product.name}</p>
                     );
                 })() : null}
 
                 {(Boolean(showPrice) || Boolean(showCategory && product.category)) ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, justifyContent: 'center', flexWrap: 'wrap', maxWidth: '100%' }}>
-                        {Boolean(showPrice) ? <p style={{ fontSize: `${fs.price}px`, fontWeight: 900, color: '#059669', margin: 0, whiteSpace: 'nowrap' }}>{formatCurrency(product.price, currency)}</p> : null}
-                        {Boolean(showCategory && product.category) ? <p style={{ fontSize: `${fs.cat}px`, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{product.category}</p> : null}
+                        {showPrice ? <p style={{ fontSize: `${fs.price}px`, fontWeight: 900, color: '#059669', margin: 0, whiteSpace: 'nowrap' }}>{formatCurrency(product.price, currency)}</p> : null}
+                        {showCategory && product.category ? <p style={{ fontSize: `${fs.cat}px`, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{product.category}</p> : null}
                     </div>
                 ) : null}
 
-                {Boolean(showSku && product.sku) ? (
+                {showSku && product.sku ? (
                     <p style={{ fontSize: `${fs.sku}px`, color: '#9ca3af', fontFamily: 'monospace', margin: 0, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
                         SKU: {product.sku}
                     </p>
@@ -135,7 +126,7 @@ export function BarcodeCard({
 
                 {val && (Boolean(showBarcode) || Boolean(showQr)) ? (
                     <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', minHeight: 0 }}>
-                        {Boolean(showBarcode) ? (
+                        {showBarcode ? (
                             <div style={{
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -185,7 +176,7 @@ export function BarcodeCard({
                                 </p>
                             </div>
                         ) : null}
-                        {Boolean(showQr) ? (
+                        {showQr ? (
                             <div style={{
                                 display: 'flex',
                                 flexDirection: 'column',

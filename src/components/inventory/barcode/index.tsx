@@ -4,11 +4,11 @@ import { useReactToPrint } from 'react-to-print';
 import { Printer, X } from 'lucide-react';
 import { Product } from '../../../types';
 import { Button } from '../../../shared/ui';
-import { sonner } from '../../../lib/sonner';
 import { BarcodeCard } from './BarcodeCard';
 import { BarcodeSidebar } from './BarcodeSidebar';
 import { BarcodePreviewArea } from './BarcodePreviewArea';
-import { calculateUnprintedQuantities, recordPrintedQuantities } from '../../../lib/services/inventory/barcodePrintTracker';
+import { recordPrintedQuantities } from '../../../lib/services/inventory/barcodePrintTracker';
+import { getPaperGeometry, getCellSize, buildLabelFontSizes, mmToPx } from './barcodeLayout';
 
 interface BarcodeGeneratorProps {
     products: Product[];
@@ -40,6 +40,13 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
     const isThermal = paperSize !== 'A4';
     const totalLabels = localProducts.reduce((sum, p) => sum + (quantities[p.id] || 0), 0);
 
+    // ── Physical layout (mm) — ONE source of truth shared by preview + print (see barcodeLayout).
+    const geo = getPaperGeometry(paperSize);
+    const gapXmm = mmToPx(1) > 0 ? gapX / mmToPx(1) : 0; // px setting → mm
+    const gapYmm = mmToPx(1) > 0 ? gapY / mmToPx(1) : 0;
+    const cell = getCellSize(geo, a4Columns, a4Rows, gapXmm, gapYmm);
+    const labelFs = buildLabelFontSizes(barcodeFontSize, contentScale);
+
     const allLabels: { product: Product; id: string }[] = [];
     localProducts.forEach(p => {
         const q = quantities[p.id] || 0;
@@ -68,11 +75,11 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
     const calcAutoScale = useCallback(() => {
         if (!previewAreaRef.current) return;
         const w = previewAreaRef.current.clientWidth;
-        const targetW = isThermal ? (paperSize === '58mm' ? 220 : 300) : A4_W;
+        const targetW = isThermal ? mmToPx(geo.widthMm) : A4_W;
         const scale = Math.min(1, (w - 40) / targetW);
         setAutoScale(scale);
         setZoomDelta(0);
-    }, [isThermal, paperSize]);
+    }, [isThermal, geo.widthMm]);
 
     useEffect(() => {
         calcAutoScale();
@@ -105,9 +112,6 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
         }
     };
 
-    const cellW = isThermal ? '100%' : `${100 / a4Columns}%`;
-    const cellH = isThermal ? 'auto' : `${100 / a4Rows}%`;
-
     const renderCard = (product: Product, labelId: string) => (
         <BarcodeCard
             key={labelId}
@@ -119,7 +123,7 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
             currency={appSettings.currency}
             pad={labelPadding}
             ratio={contentScale}
-            fs={barcodeFontSize}
+            fs={labelFs}
             barH={barcodeHeight}
             barcodeBarWidth={barcodeBarWidth}
             barcodeScale={barcodeScale}
@@ -134,8 +138,8 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
             nameLines={nameLines}
             qrSz={qrSize}
             previewScale={previewScale}
-            cellW={cellW as any}
-            cellH={cellH as any}
+            cellW={cell.cellWpx}
+            cellH={cell.cellHpx}
             marginX={marginX}
             marginY={marginY}
         />
@@ -196,8 +200,11 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
                     calcAutoScale={calcAutoScale}
                     a4Columns={a4Columns}
                     a4Rows={a4Rows}
-                    gapX={gapX}
-                    gapY={gapY}
+                    gapXmm={gapXmm}
+                    gapYmm={gapYmm}
+                    pageWidthMm={geo.widthMm}
+                    pageHeightMm={geo.heightMm}
+                    pageMarginMm={geo.marginMm}
                     renderCard={renderCard}
                 />
             </div>
