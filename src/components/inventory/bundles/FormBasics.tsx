@@ -85,7 +85,7 @@ export function FormBasics({ form, setForm, currencySymbol, bundleTotal, onOpenM
               Generate
             </Button>
           </div>
-          <span className="text-[9px] text-gray-400">Printable from Inventory → Barcode labels.</span>
+          <span className="text-[9px] text-gray-400">Printable directly from Bundles & Deals list via the Barcode button.</span>
         </div>
       </div>
 

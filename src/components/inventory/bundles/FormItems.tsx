@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { X, Info, Package } from 'lucide-react';
 import { ProductThumb } from '../../../shared/ui/ProductThumb';
 import { SharedSearchBar, SharedProductList } from '../../../shared/modules/search-and-list';
@@ -33,6 +34,18 @@ export function FormItems({
   updateQty,
   removeItem,
 }: FormItemsProps) {
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowProductPicker(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [setShowProductPicker]);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -43,23 +56,35 @@ export function FormItems({
       </div>
 
       {/* Product search — shared module */}
-      <div className="relative mb-3">
+      <div ref={searchContainerRef} className="relative mb-3">
         <SharedSearchBar
-          value={showProductPicker === true ? productSearch : ''}
+          value={productSearch}
           onChange={val => { setProductSearch(val); setShowProductPicker(true); }}
-          onFocus={() => { setProductSearch(''); setShowProductPicker(true); }}
-          placeholder={"Search product name..."}
+          onFocus={() => { setShowProductPicker(true); }}
+          placeholder={"Search product name, barcode or SKU..."}
         />
-        {showProductPicker === true && productSearch && (
+        {Boolean(showProductPicker) && productSearch.trim().length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-1 z-50">
             <SharedProductList
-              items={filteredSearchProducts.slice(0, 8)}
-              onItemAdd={(id) => {
-                const p = products.find(x => x.id === id);
+              items={filteredSearchProducts.slice(0, 10).map(p => ({
+                id: p.id,
+                title: p.name,
+                thumbnailUrl: p.image,
+                sku: p.sku || p.barcode,
+                stock: p.stock,
+                subtitle: formatCurrency(p.price, appSettings.currency)
+              }))}
+              selectedIds={form.items.map(i => i.productId)}
+              onItemAdd={(item) => {
+                const p = products.find(x => x.id === item.id);
+                if (p) addProduct(p);
+              }}
+              onItemSelect={(item) => {
+                const p = products.find(x => x.id === item.id);
                 if (p) addProduct(p);
               }}
               emptyStateText={"No product found"}
-              maxHeight={192}
+              maxHeight="240px"
               className="rounded-md shadow-lg"
             />
           </div>
