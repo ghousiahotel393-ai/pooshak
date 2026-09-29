@@ -25,6 +25,7 @@ interface InventoryToolbarProps {
   onAddProduct: () => void;
   onScanClick: () => void;
   canViewExpiry?: boolean;
+  onClearSelection?: () => void;
 }
 
 export function InventoryToolbar({
@@ -49,6 +50,7 @@ export function InventoryToolbar({
   onAddProduct,
   onScanClick,
   canViewExpiry,
+  onClearSelection,
 }: InventoryToolbarProps) {
   const typeFilterOptions = [
     { id: 'All', label: "All Items" },
@@ -138,6 +140,16 @@ export function InventoryToolbar({
           <div className="flex items-center gap-1.5 pr-3 border-r border-neutral-200 dark:border-white/10 shrink-0">
             <span className="text-[12px] font-mono tabular-nums font-bold text-neutral-900 dark:text-white leading-none">{selectedCount}</span>
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">Selected</span>
+            {onClearSelection && (
+              <button
+                type="button"
+                onClick={onClearSelection}
+                className="ml-1 text-[11px] text-neutral-400 hover:text-rose-500 underline cursor-pointer"
+                title="Clear selection"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">

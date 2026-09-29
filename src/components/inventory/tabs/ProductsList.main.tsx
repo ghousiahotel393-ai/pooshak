@@ -226,14 +226,14 @@ export function ProductsList({
 
       <InventoryToolbar
         searchTerm={searchTerm}
-        onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
+        onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); setSelectedProductIds([]); }}
         handleImportJSON={handleImportJSON}
         handleExportSelected={handleExportSelected}
         categories={categories}
         selectedCategory={selectedCategory}
-        onCategoryChange={(val) => { setSelectedCategory(val); setCurrentPage(1); }}
+        onCategoryChange={(val) => { setSelectedCategory(val); setCurrentPage(1); setSelectedProductIds([]); }}
         selectedType={selectedType}
-        onTypeChange={(val) => { setSelectedType(val); setCurrentPage(1); }}
+        onTypeChange={(val) => { setSelectedType(val); setCurrentPage(1); setSelectedProductIds([]); }}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSortChange={(by, order) => { setSortBy(by); setSortOrder(order); }}
@@ -245,6 +245,7 @@ export function ProductsList({
         onAddProduct={() => { setEditingProduct(null); setShowProductModal(true); }}
         onScanClick={() => setShowScannerInInventory(true)}
         canViewExpiry={canViewExpiry}
+        onClearSelection={() => setSelectedProductIds([])}
       />
 
       <InventoryTable
@@ -258,8 +259,8 @@ export function ProductsList({
         currentPage={currentPage}
         totalPages={totalPages}
         ITEMS_PER_PAGE={ITEMS_PER_PAGE}
-        onPageChange={(p) => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        onPageSizeChange={setPageSize}
+        onPageChange={(p) => { setCurrentPage(p); setSelectedProductIds([]); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        onPageSizeChange={(s) => { setPageSize(s); setSelectedProductIds([]); }}
         isAdmin={isAdmin}
         profile={profile}
         canManageStock={canManageStock}
