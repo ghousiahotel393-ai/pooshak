@@ -72,11 +72,9 @@ export function renderTearOff(props: RenderReceiptLayoutProps) {
       <div style={{ textAlign: 'center' }}>
         {renderLogo({ width: '50px', height: '50px', border: '2px solid #000', borderRadius: '8px', margin: '0 auto 10px' })}
         {settings.receiptShowStoreName && storeNameBlock}
-        <div>
-          {settings.receiptShowStoreAddress && settings.storeAddress}
-          {settings.receiptShowStorePhone && ` | T: ${settings.storePhone || '+92 300 0000000'}`}
-          {settings.receiptShowStoreEmail && ` | E: ${settings.storeEmail || 'contact@mystore.com'}`}
-        </div>
+        {settings.receiptShowStoreAddress && <div>{settings.storeAddress}</div>}
+        {settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {settings.storePhone || '+92 300 0000000'}</div>}
+        {settings.receiptShowStoreEmail && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>E: {settings.storeEmail || 'contact@mystore.com'}</div>}
       </div>
       <div style={bodyStyle}>
         {metaBlock}

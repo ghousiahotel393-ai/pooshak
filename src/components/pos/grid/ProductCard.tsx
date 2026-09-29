@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type CSSProperties } from 'react';
 import { Package, Plus, Minus, Infinity as InfinityIcon } from 'lucide-react';
 import { Product } from '../../../types';
 import { useProductImage } from '../../../hooks/useProductImage';
@@ -19,7 +19,14 @@ export const ProductCard = memo(function ProductCard({ product, onAddToCart, onU
   const isNoStock = shouldTrackInventory && product.stock === 0;
   const isLowStock = shouldTrackInventory && product.stock > 0 && product.stock <= (product.minStock || 5);
   const isInfinite = !shouldTrackInventory || product.stock >= 990000;
-  const imageUrl = useProductImage(product.image);
+  // Grid cards render a small downscaled thumbnail (not the full-res image) for smooth scrolling.
+  const imageUrl = useProductImage(product.image, 256);
+
+  const cardMinHeight = (typeof window !== 'undefined' && window.innerWidth >= 1024)
+    ? (gridCols === 0 || gridCols >= 4 ? (isTouchMode ? 120 : 140)
+      : gridCols === 3 ? (isTouchMode ? 150 : 180)
+        : (isTouchMode ? 180 : 220))
+    : (isTouchMode ? 120 : 140);
 
   return (
     <div
@@ -30,12 +37,12 @@ export const ProductCard = memo(function ProductCard({ product, onAddToCart, onU
         cartQuantity !== 0 ? 'border-emerald-500/50 ring-1 ring-emerald-500/50 bg-emerald-500/[0.02]' : ''
       }`}
       style={{
-        minHeight: (typeof window !== 'undefined' && window.innerWidth >= 1024)
-          ? (gridCols === 0 || gridCols >= 4 ? (isTouchMode ? '120px' : '140px') :
-            gridCols === 3 ? (isTouchMode ? '150px' : '180px') :
-              (isTouchMode ? '180px' : '220px'))
-          : (isTouchMode ? '120px' : '140px')
-      }}
+        minHeight: `${cardMinHeight}px`,
+        // Let the browser skip rendering/layout of off-screen cards (cheap virtualization,
+        // no dependency). contain-intrinsic-size keeps the scrollbar stable while skipped.
+        contentVisibility: 'auto',
+        containIntrinsicSize: `${cardMinHeight}px`,
+      } as CSSProperties}
     >
       <div className={`relative overflow-hidden bg-neutral-100 dark:bg-neutral-900 ${isTouchMode ? 'aspect-square' : 'aspect-[4/3]'}`}>
         {imageUrl ? (

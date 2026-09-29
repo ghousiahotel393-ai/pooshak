@@ -16,10 +16,12 @@ export function renderHeaderSection(ctx: ReceiptCtx) {
       )}
       {settings.receiptShowStoreName && <div style={{ fontWeight: clamp(baseWeight + 300), fontSize: `${fs.shopName}px`, marginTop: '8px', textTransform: 'uppercase' }}>{settings.storeName}</div>}
       {settings.receiptShowStoreAddress && <div style={{ marginTop: '4px' }}>{settings.storeAddress}</div>}
-      <div style={{ marginTop: '2px' }}>
-        {settings.receiptShowStorePhone && <span>T: {settings.storePhone}</span>}
-        {settings.receiptShowStoreEmail && <span style={{ marginLeft: '6px' }}>E: {settings.storeEmail}</span>}
-      </div>
+      {settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {settings.storePhone}</div>}
+      {settings.receiptShowStoreEmail && (
+        <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>
+          E: {settings.storeEmail}
+        </div>
+      )}
       {settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: clamp(baseWeight + 100) }}>{settings.receiptHeader}</div>}
     </div>
   );

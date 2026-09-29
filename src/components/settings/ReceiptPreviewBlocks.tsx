@@ -70,10 +70,12 @@ export function createPreviewBlocks(ctx: PreviewBlocksCtx) {
   const storeInfoBlock = (
     <>
       {settings.receiptShowStoreAddress && <div style={{ marginTop: '4px' }}>{settings.storeAddress}</div>}
-      <div style={{ marginTop: '2px' }}>
-        {settings.receiptShowStorePhone && <span>T: {settings.storePhone || '+92 300 0000000'}</span>}
-        {settings.receiptShowStoreEmail && <span style={{ marginLeft: '6px' }}>E: {settings.storeEmail || 'contact@mystore.com'}</span>}
-      </div>
+      {settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {settings.storePhone || '+92 300 0000000'}</div>}
+      {settings.receiptShowStoreEmail && (
+        <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>
+          E: {settings.storeEmail || 'contact@mystore.com'}
+        </div>
+      )}
       {settings.receiptHeader && <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap', fontWeight: clamp(baseWeight + 100), fontSize: `${fs.body}px` }}>{settings.receiptHeader}</div>}
     </>
   );
@@ -174,10 +176,12 @@ export function createPreviewBlocks(ctx: PreviewBlocksCtx) {
         </div>
       )}
       {settings.receiptShowStoreAddress && <div style={{ marginTop: '4px' }}>{settings.storeAddress}</div>}
-      <div style={{ marginTop: '2px' }}>
-        {settings.receiptShowStorePhone && <span>T: {settings.storePhone || '+92 300 0000000'}</span>}
-        {settings.receiptShowStoreEmail && <span style={{ marginLeft: '6px' }}>E: {settings.storeEmail || 'contact@mystore.com'}</span>}
-      </div>
+      {settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {settings.storePhone || '+92 300 0000000'}</div>}
+      {settings.receiptShowStoreEmail && (
+        <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>
+          E: {settings.storeEmail || 'contact@mystore.com'}
+        </div>
+      )}
       {settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: clamp(baseWeight + 100) }}>{settings.receiptHeader}</div>}
     </>
   );

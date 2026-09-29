@@ -15,7 +15,8 @@ export function renderBoxedSections(ctx: ReceiptCtx) {
         {renderLogo(ctx, { width: '50px', height: '50px', border: '1px dashed #000', borderRadius: '8px', margin: '0 auto 5px' })}
         {ctx.settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${ctx.fs.shopName}px`, textTransform: 'uppercase' }}>{ctx.settings.storeName}</div>}
         {ctx.settings.receiptShowStoreAddress && <div style={{ marginTop: '4px' }}>{ctx.settings.storeAddress}</div>}
-        <div style={{ marginTop: '2px' }}>{ctx.settings.receiptShowStorePhone && <span>T: {ctx.settings.storePhone}</span>}{ctx.settings.receiptShowStoreEmail && <span> E: {ctx.settings.storeEmail}</span>}</div>
+        {ctx.settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {ctx.settings.storePhone}</div>}
+        {ctx.settings.receiptShowStoreEmail && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>E: {ctx.settings.storeEmail}</div>}
         {ctx.settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{ctx.settings.receiptHeader}</div>}
       </div>
       <div style={{ paddingLeft: bodyPadL, paddingRight: bodyPadR }}>
@@ -53,11 +54,9 @@ export function renderTearOff(ctx: ReceiptCtx) {
       <div style={{ textAlign: 'center' }}>
         {renderLogo(ctx, { width: '50px', height: '50px', border: '2px solid #000', borderRadius: '8px', margin: '0 auto 10px' })}
         {ctx.settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${ctx.fs.shopName}px`, textTransform: 'uppercase' }}>{ctx.settings.storeName}</div>}
-        <div>
-          {ctx.settings.receiptShowStoreAddress && ctx.settings.storeAddress}
-          {ctx.settings.receiptShowStorePhone && ` | T: ${ctx.settings.storePhone}`}
-          {ctx.settings.receiptShowStoreEmail && ` | E: ${ctx.settings.storeEmail}`}
-        </div>
+        {ctx.settings.receiptShowStoreAddress && <div>{ctx.settings.storeAddress}</div>}
+        {ctx.settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {ctx.settings.storePhone}</div>}
+        {ctx.settings.receiptShowStoreEmail && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>E: {ctx.settings.storeEmail}</div>}
         {ctx.settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{ctx.settings.receiptHeader}</div>}
       </div>
       <div style={{ paddingLeft: bodyPadL, paddingRight: bodyPadR }}>
@@ -93,7 +92,8 @@ export function renderVerticalLine(ctx: ReceiptCtx) {
         <div>
           {ctx.settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${ctx.fs.shopName}px`, textTransform: 'uppercase' }}>{ctx.settings.storeName}</div>}
           {ctx.settings.receiptShowStoreAddress && <div>{ctx.settings.storeAddress}</div>}
-          <div>{ctx.settings.receiptShowStorePhone && <span>T: {ctx.settings.storePhone}</span>}{ctx.settings.receiptShowStoreEmail && <span> E: {ctx.settings.storeEmail}</span>}</div>
+          {ctx.settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {ctx.settings.storePhone}</div>}
+          {ctx.settings.receiptShowStoreEmail && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>E: {ctx.settings.storeEmail}</div>}
           {ctx.settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{ctx.settings.receiptHeader}</div>}
         </div>
       </div>
@@ -121,7 +121,8 @@ export function renderEmphasizedTotal(ctx: ReceiptCtx) {
         {renderLogo(ctx, { width: '50px', height: '50px', border: '2px solid #000', borderRadius: '50%', margin: '0 auto 10px' })}
         {settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${fs.shopName}px`, textTransform: 'uppercase' }}>{settings.storeName}</div>}
         {settings.receiptShowStoreAddress && <div style={{ marginTop: '4px' }}>{settings.storeAddress}</div>}
-        <div style={{ marginTop: '2px' }}>{settings.receiptShowStorePhone && <span>T: {settings.storePhone}</span>}{settings.receiptShowStoreEmail && <span> E: {settings.storeEmail}</span>}</div>
+        {settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {settings.storePhone}</div>}
+        {settings.receiptShowStoreEmail && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>E: {settings.storeEmail}</div>}
         {settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{settings.receiptHeader}</div>}
       </div>
       <div style={{ paddingLeft: bodyPadL, paddingRight: bodyPadR }}>

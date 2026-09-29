@@ -41,7 +41,8 @@ export function renderHorizontalHeader(ctx: ReceiptCtx) {
         <div style={{ textAlign: 'left' }}>
           {ctx.settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${ctx.fs.shopName}px`, textTransform: 'uppercase' }}>{ctx.settings.storeName}</div>}
           {ctx.settings.receiptShowStoreAddress && <div>{ctx.settings.storeAddress}</div>}
-          <div>{ctx.settings.receiptShowStorePhone && <span>T: {ctx.settings.storePhone}</span>}{ctx.settings.receiptShowStoreEmail && <span> E: {ctx.settings.storeEmail}</span>}</div>
+          {ctx.settings.receiptShowStorePhone && <div>T: {ctx.settings.storePhone}</div>}
+          {ctx.settings.receiptShowStoreEmail && <div style={{ wordBreak: 'break-all' }}>E: {ctx.settings.storeEmail}</div>}
           {ctx.settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{ctx.settings.receiptHeader}</div>}
         </div>
       </div>
@@ -74,7 +75,8 @@ export function _centeredFlow(ctx: ReceiptCtx) {
       {settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${fs.shopName}px`, textTransform: 'uppercase' }}>{settings.storeName}</div>}
       <div style={{ marginBottom: '10px' }}>
         {settings.receiptShowStoreAddress && <div style={{ textAlign: 'center' }}>{settings.storeAddress}</div>}
-        <div style={{ textAlign: 'center' }}>{settings.receiptShowStorePhone ? `T: ${settings.storePhone}` : ''}{settings.receiptShowStoreEmail ? ` E: ${settings.storeEmail}` : ''}</div>
+        {settings.receiptShowStorePhone && <div style={{ textAlign: 'center' }}>T: {settings.storePhone}</div>}
+        {settings.receiptShowStoreEmail && <div style={{ textAlign: 'center', wordBreak: 'break-all' }}>E: {settings.storeEmail}</div>}
       </div>
       <div style={{ paddingLeft: bodyPadL, paddingRight: bodyPadR }}>
         {renderMetaSection(ctx)}
@@ -125,7 +127,8 @@ export function renderLeftGrid(ctx: ReceiptCtx) {
       <div style={{ marginBottom: '15px' }}>
         <div style={{ borderBottom: '3px solid #000', width: '100%', paddingBottom: '5px', fontSize: '16px', fontWeight: 'bold' }}>{ctx.settings.storeName || 'STORE NAME'}</div>
         {ctx.settings.receiptShowStoreAddress && <div style={{ marginTop: '4px' }}>{ctx.settings.storeAddress}</div>}
-        <div style={{ marginTop: '2px' }}>{ctx.settings.receiptShowStorePhone && <span>T: {ctx.settings.storePhone}</span>}{ctx.settings.receiptShowStoreEmail && <span> E: {ctx.settings.storeEmail}</span>}</div>
+        {ctx.settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {ctx.settings.storePhone}</div>}
+        {ctx.settings.receiptShowStoreEmail && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>E: {ctx.settings.storeEmail}</div>}
         {ctx.settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{ctx.settings.receiptHeader}</div>}
       </div>
       <div style={{ paddingLeft: bodyPadL, paddingRight: bodyPadR }}>
@@ -194,7 +197,8 @@ export function renderFloatingTotals(ctx: ReceiptCtx) {
       {settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${fs.shopName}px`, borderBottom: '2px solid #000', display: 'inline-block', paddingBottom: '2px', marginBottom: '10px' }}>{settings.storeName}</div>}
       <div style={{ marginBottom: '15px' }}>
         {settings.receiptShowStoreAddress && <div>{settings.storeAddress}</div>}
-        <div>{settings.receiptShowStorePhone && <span>T: {settings.storePhone}</span>}{settings.receiptShowStoreEmail && <span> E: {settings.storeEmail}</span>}</div>
+        {settings.receiptShowStorePhone && <div>T: {settings.storePhone}</div>}
+        {settings.receiptShowStoreEmail && <div style={{ wordBreak: 'break-all' }}>E: {settings.storeEmail}</div>}
         {settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{settings.receiptHeader}</div>}
       </div>
       <div style={{ paddingLeft: bodyPadL, paddingRight: bodyPadR }}>
@@ -228,7 +232,8 @@ export function renderOffsetLogo(ctx: ReceiptCtx) {
       <div style={{ paddingTop: '25px', paddingLeft: '70px', minHeight: '55px' }}>
         {ctx.settings.receiptShowStoreName && <div style={{ fontWeight: ctx.clamp(ctx.baseWeight + 300), fontSize: `${ctx.fs.shopName}px`, textTransform: 'uppercase' }}>{ctx.settings.storeName}</div>}
         {ctx.settings.receiptShowStoreAddress && <div style={{ marginTop: '4px' }}>{ctx.settings.storeAddress}</div>}
-        <div style={{ marginTop: '2px' }}>{ctx.settings.receiptShowStorePhone && <span>T: {ctx.settings.storePhone}</span>}{ctx.settings.receiptShowStoreEmail && <span> E: {ctx.settings.storeEmail}</span>}</div>
+        {ctx.settings.receiptShowStorePhone && <div style={{ marginTop: '2px' }}>T: {ctx.settings.storePhone}</div>}
+        {ctx.settings.receiptShowStoreEmail && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>E: {ctx.settings.storeEmail}</div>}
         {ctx.settings.receiptHeader && <div style={{ marginTop: '4px', whiteSpace: 'pre-wrap', fontWeight: ctx.clamp(ctx.baseWeight + 100), fontSize: '10px' }}>{ctx.settings.receiptHeader}</div>}
       </div>
       <div style={{ paddingLeft: bodyPadL, paddingRight: bodyPadR }}>
