@@ -38,16 +38,16 @@ export function useProductsListHandlers({
   };
 
   const handleSelectAll = () => {
-    // Select Filtered: ONLY select or deselect items visible on the current page
+    // Select Filtered: toggle selection of filtered items on current page (paginatedProducts)
     const target = paginatedProducts && paginatedProducts.length > 0 ? paginatedProducts : filteredProducts;
     if (target.length === 0) return;
     const targetIds = target.map(p => p.id);
     setSelectedProductIds(prev => {
       const allSelected = targetIds.every(id => prev.includes(id));
       if (allSelected) {
-        return [];
+        return prev.filter(id => !targetIds.includes(id));
       }
-      return targetIds;
+      return Array.from(new Set([...prev, ...targetIds]));
     });
   };
 

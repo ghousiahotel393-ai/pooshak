@@ -45,7 +45,7 @@ export function ProductsList({
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedSupplier, _setSelectedSupplier] = useState('All');
-  const [sortBy, setSortBy] = useState<'name' | 'stock' | 'price'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'stock' | 'price' | 'date'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(() => {
@@ -105,10 +105,28 @@ export function ProductsList({
         let aValue: string | number;
         let bValue: string | number;
         switch (sortBy) {
-          case 'name': aValue = (a.name || '').toLowerCase(); bValue = (b.name || '').toLowerCase(); break;
-          case 'stock': aValue = a.stock; bValue = b.stock; break;
-          case 'price': aValue = a.price; bValue = b.price; break;
-          default: aValue = (a.name || '').toLowerCase(); bValue = (b.name || '').toLowerCase();
+          case 'name':
+            aValue = (a.name || '').toLowerCase();
+            bValue = (b.name || '').toLowerCase();
+            break;
+          case 'stock':
+            aValue = Number(a.stock) || 0;
+            bValue = Number(b.stock) || 0;
+            break;
+          case 'price':
+            aValue = Number(a.price) || 0;
+            bValue = Number(b.price) || 0;
+            break;
+          case 'date': {
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            aValue = isNaN(timeA) ? 0 : timeA;
+            bValue = isNaN(timeB) ? 0 : timeB;
+            break;
+          }
+          default:
+            aValue = (a.name || '').toLowerCase();
+            bValue = (b.name || '').toLowerCase();
         }
         if (sortOrder === 'asc') return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
         else return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
@@ -226,14 +244,14 @@ export function ProductsList({
 
       <InventoryToolbar
         searchTerm={searchTerm}
-        onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); setSelectedProductIds([]); }}
+        onSearchChange={(val) => { setSearchTerm(val); setCurrentPage(1); }}
         handleImportJSON={handleImportJSON}
         handleExportSelected={handleExportSelected}
         categories={categories}
         selectedCategory={selectedCategory}
-        onCategoryChange={(val) => { setSelectedCategory(val); setCurrentPage(1); setSelectedProductIds([]); }}
+        onCategoryChange={(val) => { setSelectedCategory(val); setCurrentPage(1); }}
         selectedType={selectedType}
-        onTypeChange={(val) => { setSelectedType(val); setCurrentPage(1); setSelectedProductIds([]); }}
+        onTypeChange={(val) => { setSelectedType(val); setCurrentPage(1); }}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSortChange={(by, order) => { setSortBy(by); setSortOrder(order); }}

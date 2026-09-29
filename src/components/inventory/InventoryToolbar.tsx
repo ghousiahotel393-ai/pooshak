@@ -13,9 +13,9 @@ interface InventoryToolbarProps {
   onCategoryChange: (val: string) => void;
   selectedType: string;
   onTypeChange: (val: string) => void;
-  sortBy: 'name' | 'stock' | 'price';
+  sortBy: 'name' | 'stock' | 'price' | 'date';
   sortOrder: 'asc' | 'desc';
-  onSortChange: (by: 'name' | 'stock' | 'price', order: 'asc' | 'desc') => void;
+  onSortChange: (by: 'name' | 'stock' | 'price' | 'date', order: 'asc' | 'desc') => void;
   canManageStock: boolean;
   selectedCount: number;
   _filteredCount?: number;
@@ -118,15 +118,19 @@ export function InventoryToolbar({
           />
           <SearchableSelect
             options={[
+              { id: 'date-desc', label: "Newest First (New to Old)" },
+              { id: 'date-asc', label: "Oldest First (Old to New)" },
               { id: 'name-asc', label: "Sort: A-Z" },
               { id: 'name-desc', label: "Sort: Z-A" },
-              { id: 'stock-asc', label: "Stock: Low" },
-              { id: 'stock-desc', label: "Stock: High" }
+              { id: 'stock-asc', label: "Stock: Low to High" },
+              { id: 'stock-desc', label: "Stock: High to Low" },
+              { id: 'price-asc', label: "Price: Low to High" },
+              { id: 'price-desc', label: "Price: High to Low" },
             ]}
             value={`${sortBy}-${sortOrder}`}
             onChange={val => {
               const [field, order] = val.split('-');
-              onSortChange(field as 'name' | 'stock' | 'price', order as 'asc' | 'desc');
+              onSortChange(field as 'name' | 'stock' | 'price' | 'date', order as 'asc' | 'desc');
             }}
             placeholder={"Sort"}
             align="right"
