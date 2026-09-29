@@ -4,18 +4,20 @@ import { useReactToPrint } from 'react-to-print';
 import { Printer, X } from 'lucide-react';
 import { Product } from '../../../types';
 import { Button } from '../../../shared/ui';
+import { sonner } from '../../../lib/sonner';
 import { BarcodeCard } from './BarcodeCard';
 import { BarcodeSidebar } from './BarcodeSidebar';
-import { BarcodePreviewToolbar } from './BarcodePreviewToolbar';
+import { BarcodePreviewArea } from './BarcodePreviewArea';
+import { calculateUnprintedQuantities, recordPrintedQuantities } from '../../../lib/services/inventory/barcodePrintTracker';
 
 interface BarcodeGeneratorProps {
     products: Product[];
     onClose: () => void;
     onProductsChange?: (nextProducts: Product[]) => void;
+    onClearAll?: () => void;
 }
 
 const A4_W = 794;
-const A4_H = 1123;
 
 export let persistedBarcodeProducts: Product[] = [];
 export let persistedBarcodeQuantities: Record<string, number> = {};
@@ -25,7 +27,7 @@ export function clearPersistedBarcodeState() {
     persistedBarcodeQuantities = {};
 }
 
-export function BarcodeGenerator({ products, onClose, onProductsChange }: BarcodeGeneratorProps) {
+export function BarcodeGenerator({ products, onClose, onProductsChange, onClearAll }: BarcodeGeneratorProps) {
     const settings = useBarcodeSettings();
     const {
         paperSize, a4Columns, a4Rows, barcodeScale, barcodeHeight,
@@ -37,19 +39,42 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
     const [localProducts, setLocalProducts] = useState<Product[]>(() => {
         return persistedBarcodeProducts.length > 0 ? persistedBarcodeProducts : products;
     });
+
     const [quantities, setQuantities] = useState<Record<string, number>>(() => {
         if (Object.keys(persistedBarcodeQuantities).length > 0) return persistedBarcodeQuantities;
+        try {
+            const saved = localStorage.getItem('barcode_selected_quantities');
+            if (saved) return JSON.parse(saved);
+        } catch {
+            // ignore JSON error
+        }
         const q: Record<string, number> = {};
         products.forEach(p => { q[p.id] = 1; });
         return q;
     });
 
+    const [unprintedMap, setUnprintedMap] = useState<Record<string, number>>({});
+
+    const refreshUnprinted = useCallback(async (prods: Product[]) => {
+        if (prods.length === 0) return;
+        const unprinted = await calculateUnprintedQuantities(prods);
+        setUnprintedMap(unprinted);
+    }, []);
+
+    useEffect(() => {
+        refreshUnprinted(localProducts);
+    }, [localProducts, refreshUnprinted]);
+
     useEffect(() => {
         persistedBarcodeProducts = localProducts;
         persistedBarcodeQuantities = quantities;
+        try {
+            localStorage.setItem('barcode_selected_quantities', JSON.stringify(quantities));
+        } catch {
+            // ignore storage error
+        }
         if (onProductsChange) onProductsChange(localProducts);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [localProducts, quantities]);
+    }, [localProducts, quantities, onProductsChange]);
 
     useEffect(() => {
         if (products.length > 0 && localProducts.length === 0) {
@@ -58,20 +83,52 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
             products.forEach(p => { q[p.id] = 1; });
             setQuantities(q);
         }
-    }, [products]);
+    }, [products, localProducts.length]);
 
-    const updateQty = (id: string, qty: number) => setQuantities(prev => ({ ...prev, [id]: Math.max(0, qty) }));
+    const updateQty = (id: string, d: number) => {
+        setQuantities(prev => ({
+            ...prev,
+            [id]: Math.max(0, (prev[id] !== undefined ? prev[id] : 1) + d)
+        }));
+    };
+
     const setGlobalQty = (qty: number) => {
         const q: Record<string, number> = {};
-        localProducts.forEach(p => { q[p.id] = qty; });
+        localProducts.forEach(p => { q[p.id] = Math.max(0, qty); });
         setQuantities(q);
     };
 
-    const isThermal = paperSize !== 'A4';
+    const handleLoadUnprinted = () => {
+        setQuantities(prev => {
+            const next = { ...prev };
+            localProducts.forEach(p => {
+                const unprinted = unprintedMap[p.id];
+                next[p.id] = (unprinted !== undefined && unprinted > 0) ? unprinted : (prev[p.id] || 1);
+            });
+            return next;
+        });
+        sonner.success('Loaded unprinted batch quantities!');
+    };
 
+    const handleClearAll = () => {
+        setLocalProducts([]);
+        setQuantities({});
+        clearPersistedBarcodeState();
+        try {
+            localStorage.removeItem('barcode_selected_product_ids');
+            localStorage.removeItem('barcode_selected_quantities');
+        } catch {
+            // ignore
+        }
+        if (onClearAll) onClearAll();
+        if (onProductsChange) onProductsChange([]);
+        sonner.success('Cleared all items & quantities');
+    };
+
+    const isThermal = paperSize !== 'A4';
     const totalLabels = localProducts.reduce((sum, p) => sum + (quantities[p.id] || 0), 0);
 
-    const allLabels: { product: Product, id: string }[] = [];
+    const allLabels: { product: Product; id: string }[] = [];
     localProducts.forEach(p => {
         const q = quantities[p.id] || 0;
         for (let i = 0; i < q; i++) {
@@ -86,7 +143,7 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
             pages.push(allLabels.slice(i, i + labelsPerPage));
         }
     } else {
-        pages.push(allLabels); // Thermal is just one continuous list
+        pages.push(allLabels);
     }
 
     const [autoScale, setAutoScale] = useState(1);
@@ -100,8 +157,7 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
         if (!previewAreaRef.current) return;
         const w = previewAreaRef.current.clientWidth;
         const targetW = isThermal ? (paperSize === '58mm' ? 220 : 300) : A4_W;
-        const padding = 40;
-        const scale = Math.min(1, (w - padding) / targetW);
+        const scale = Math.min(1, (w - 40) / targetW);
         setAutoScale(scale);
         setZoomDelta(0);
     }, [isThermal, paperSize]);
@@ -125,13 +181,15 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
 
     const handlePrintFn = useReactToPrint({
         content: () => componentRef.current,
-        documentTitle: `Barcodes_${new Date().getTime()}`,
+        documentTitle: `Barcodes_${Date.now()}`,
         pageStyle: getPageStyle(),
     });
 
     const handlePrint = () => {
         if (totalLabels > 0 && handlePrintFn) {
+            recordPrintedQuantities(quantities);
             handlePrintFn();
+            refreshUnprinted(localProducts);
         }
     };
 
@@ -164,8 +222,8 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
             nameLines={nameLines}
             qrSz={qrSize}
             previewScale={previewScale}
-            cellW={cellW}
-            cellH={cellH}
+            cellW={cellW as any}
+            cellH={cellH as any}
             marginX={marginX}
             marginY={marginY}
         />
@@ -179,8 +237,8 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
                         <Printer className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                     </div>
                     <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white leading-none truncate">{"Barcode Print Engine"}</h2>
-                        <p className="hidden sm:block text-[11px] text-neutral-500 mt-0.5 truncate">{"Configure and print barcode labels"}</p>
+                        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white leading-none truncate">Barcode Print Engine</h2>
+                        <p className="hidden sm:block text-[11px] text-neutral-500 mt-0.5 truncate">Configure and print barcode labels</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -194,11 +252,12 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
                         size="sm"
                         icon={<Printer className="h-3.5 w-3.5 flex-shrink-0" />}
                     >
-                        <span>{"Print Labels"}</span>
+                        <span>Print Labels</span>
                     </Button>
                     <Button variant="ghost" size="sm" onClick={onClose} icon={<X className="h-4 w-4" />} />
                 </div>
             </div>
+
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
                 <BarcodeSidebar
                     settings={settings}
@@ -208,88 +267,27 @@ export function BarcodeGenerator({ products, onClose, onProductsChange }: Barcod
                     setQuantities={setQuantities}
                     updateQty={updateQty}
                     setGlobalQty={setGlobalQty}
+                    onClearAll={handleClearAll}
+                    unprintedMap={unprintedMap}
+                    onLoadUnprinted={handleLoadUnprinted}
                 />
-                <div ref={previewAreaRef}
-                    className="h-[22vh] sm:h-[30vh] lg:h-full lg:flex-1 flex-shrink-0 bg-neutral-100 dark:bg-[#0f0f0f] flex flex-col overflow-hidden order-1 lg:order-2 relative min-h-0"
-                >
-                    <BarcodePreviewToolbar
-                        paperSize={paperSize}
-                        pageCount={pages.length}
-                        a4Columns={a4Columns}
-                        a4Rows={a4Rows}
-                        autoScale={autoScale}
-                        zoomDelta={zoomDelta}
-                        previewScale={previewScale}
-                        setZoomDelta={setZoomDelta}
-                        calcAutoScale={calcAutoScale}
-                    />
-
-                    <div className="flex-1 overflow-auto">
-                        <div className="flex flex-col items-center py-4 px-2 min-h-full">
-                            <div ref={componentRef} className="print:bg-transparent flex flex-col items-center">
-                                {paperSize === 'A4' ? (
-                                    pages.map((page, pi) => (
-                                        <div key={`pw-${pi}`} className="flex flex-col items-center">
-                                            <div className="page-indicator print:hidden flex items-center gap-2 my-2"
-                                                style={{ width: `${A4_W * previewScale}px`, maxWidth: 'calc(100vw - 32px)' }}>
-                                                <div className="h-px flex-1 bg-neutral-200 dark:border-white/[0.08]" />
-                                                <span className="flex items-center gap-1.5 text-[11px] font-mono text-neutral-600 dark:text-neutral-400 px-2.5 py-0.5 rounded bg-white dark:bg-surface border border-neutral-200 dark:border-white/[0.08] shadow-none whitespace-nowrap">
-                                                    <span className="text-emerald-500">●</span> page {pi + 1} / {pages.length}
-                                                </span>
-                                                <div className="h-px flex-1 bg-neutral-200 dark:border-white/[0.08]" />
-                                            </div>
-
-                                            <div className="print-page bg-white shadow-2xl print:shadow-none"
-                                                data-capture-id={`page-${pi}`}
-                                                style={{
-                                                    width: `${A4_W}px`,
-                                                    height: `${A4_H}px`,
-                                                    transform: `scale(${previewScale})`,
-                                                    transformOrigin: 'top center',
-                                                    marginBottom: `${(A4_H * previewScale) - A4_H + 16}px`,
-                                                    display: 'grid',
-                                                    gridTemplateColumns: `repeat(${a4Columns},1fr)`,
-                                                    gridTemplateRows: `repeat(${a4Rows},1fr)`,
-                                                    alignContent: 'stretch',
-                                                    gap: `${gapY}px ${gapX}px`,
-                                                    padding: '19px',
-                                                    boxSizing: 'border-box',
-                                                    backgroundColor: 'white',
-                                                    overflow: 'hidden',
-                                                    flexShrink: 0,
-                                                }}>
-                                                {page.map(item => renderCard(item.product, item.id))}
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="flex flex-col items-center pt-3 print:pt-0">
-                                        {allLabels.map(item => renderCard(item.product, item.id))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <style>{`
-                        @media print {
-                            .print-page {
-                                transform: none !important;
-                                margin-bottom: 0 !important;
-                                width: 210mm !important;
-                                height: 297mm !important;
-                                padding: 5mm !important;
-                            }
-                            .label-to-print {
-                                transform: none !important;
-                                margin-bottom: 0 !important;
-                                border: none !important;
-                                box-shadow: none !important;
-                            }
-                            .page-indicator { display: none !important; }
-                        }
-                    `}</style>
-                </div>
+                <BarcodePreviewArea
+                    previewAreaRef={previewAreaRef}
+                    componentRef={componentRef}
+                    paperSize={paperSize}
+                    pages={pages}
+                    allLabels={allLabels}
+                    previewScale={previewScale}
+                    autoScale={autoScale}
+                    zoomDelta={zoomDelta}
+                    setZoomDelta={setZoomDelta}
+                    calcAutoScale={calcAutoScale}
+                    a4Columns={a4Columns}
+                    a4Rows={a4Rows}
+                    gapX={gapX}
+                    gapY={gapY}
+                    renderCard={renderCard}
+                />
             </div>
         </div>
     );

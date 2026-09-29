@@ -78,8 +78,6 @@ export function ProductsList({
         }
         return prev;
       });
-    } else if (!showBarcodeGenerator) {
-      setBarcodeProducts([]);
     }
   }, [appProducts, showBarcodeGenerator, selectedProductIds]);
 
@@ -140,14 +138,10 @@ export function ProductsList({
     if (!appProducts) return;
     const term = barcode.trim();
     const normalizedTerm = normalizeBarcodeValue(term);
-    let found = appProducts.find(p => p.barcode === term || p.sku === term);
-    if (!found) {
-      found = appProducts.find(p => {
-        const pBarcode = normalizeBarcodeValue(p.barcode || '');
-        const pSku = normalizeBarcodeValue(p.sku || '');
-        return pBarcode === normalizedTerm || pSku === normalizedTerm;
-      });
-    }
+    const found = appProducts.find(p => {
+      const b = p.barcode || '', s = p.sku || '';
+      return b === term || s === term || normalizeBarcodeValue(b) === normalizedTerm || normalizeBarcodeValue(s) === normalizedTerm;
+    });
     if (found) {
       setSearchTerm(found.barcode || found.sku || '');
       setCurrentPage(1);
@@ -172,8 +166,7 @@ export function ProductsList({
     setSelectedProductIds,
     filteredProducts,
     paginatedProducts,
-    setShowBarcodeGenerator,
-    setBarcodeProducts
+    setShowBarcodeGenerator, setBarcodeProducts
   });
 
   const lowStockProducts = appProducts.filter(p => p.trackInventory !== false && p.stock < 990000 && p.stock >= 0 && p.stock <= (p.minStock || 5));
@@ -184,15 +177,11 @@ export function ProductsList({
     return createPortal(
       <div className="fixed inset-0 z-[800] bg-white dark:bg-surface animate-in fade-in zoom-in-95 duration-300 flex flex-col">
         <div className="flex-shrink-0 flex items-center gap-4 px-4 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] border-b border-gray-200 dark:border-white/10 bg-white dark:bg-app">
-          <Button variant="ghost" onClick={() => {
-            setShowBarcodeGenerator(false);
-            setBarcodeProducts([]);
-            setSelectedProductIds([]);
-            clearPersistedBarcodeState();
-            localStorage.removeItem('barcode_selected_product_ids');
-            localStorage.removeItem('barcode_selected_quantities');
-            localStorage.removeItem('barcode_show_generator');
-          }} className="!min-h-0 !h-8 !px-2.5 !rounded !bg-transparent !text-neutral-600 dark:!text-neutral-400 hover:!bg-neutral-100 dark:hover:!bg-surface-hover">
+          <Button
+            variant="ghost"
+            onClick={() => setShowBarcodeGenerator(false)}
+            className="!min-h-0 !h-8 !px-2.5 !rounded !bg-transparent !text-neutral-600 dark:!text-neutral-400 hover:!bg-neutral-100 dark:hover:!bg-surface-hover"
+          >
             <ChevronLeft className="h-4 w-4" />
             <span className="text-[13px] font-medium">Back</span>
           </Button>
@@ -202,13 +191,15 @@ export function ProductsList({
         <div className="flex-1 min-h-0">
           <BarcodeGenerator
             products={barcodeProducts}
-            onClose={() => {
+            onClose={() => setShowBarcodeGenerator(false)}
+            onProductsChange={(next) => setSelectedProductIds(next.map(p => p.id))}
+            onClearAll={() => {
               setShowBarcodeGenerator(false);
               setBarcodeProducts([]);
               setSelectedProductIds([]);
               clearPersistedBarcodeState();
+              ['barcode_selected_product_ids', 'barcode_selected_quantities', 'barcode_show_generator'].forEach(k => localStorage.removeItem(k));
             }}
-            onProductsChange={(next) => setSelectedProductIds(next.map(p => p.id))}
           />
         </div>
       </div>,
