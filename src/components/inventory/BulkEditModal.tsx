@@ -43,28 +43,22 @@ export function BulkEditModal({ isOpen, onClose, selectedIds, categories, suppli
     setIsUpdating(true);
 
     try {
-      let updateCount = 0;
-      for (const id of selectedIds) {
-        const product = appProducts.find(p => p.id === id);
-        if (!product) continue;
+      const updatedData: Partial<Product> = {};
+      if (updates.price !== undefined) updatedData.price = updates.price;
+      if (updates.cost !== undefined) updatedData.cost = updates.cost;
+      if (updates.category !== undefined) updatedData.category = updates.category;
+      if (updates.supplier !== undefined) updatedData.supplier = updates.supplier;
+      if (updates.active !== undefined) updatedData.active = updates.active;
+      if (updates.taxable !== undefined) updatedData.taxable = updates.taxable;
+      if (updates.image !== undefined) updatedData.image = updates.image;
 
-        const updatedData: Partial<Product> = {};
-        if (updates.price !== undefined) updatedData.price = updates.price;
-        if (updates.cost !== undefined) updatedData.cost = updates.cost;
-        if (updates.category !== undefined) updatedData.category = updates.category;
-        if (updates.supplier !== undefined) updatedData.supplier = updates.supplier;
-        if (updates.active !== undefined) updatedData.active = updates.active;
-        if (updates.taxable !== undefined) updatedData.taxable = updates.taxable;
-        if (updates.image !== undefined) updatedData.image = updates.image;
-
-        if (Object.keys(updatedData).length > 0) {
-          await productsService.updateProduct(id, updatedData);
-          updateCount++;
-        }
+      if (Object.keys(updatedData).length > 0) {
+        await productsService.bulkUpdate(selectedIds, updatedData);
+        await useProductsStore.getState().loadProductsFromDb();
       }
 
       sonner.success("Bulk Update Applied", {
-        description: `Successfully updated ${updateCount} products.`
+        description: `Successfully updated ${selectedIds.length} products.`
       });
       onClose();
     } catch (err: any) {

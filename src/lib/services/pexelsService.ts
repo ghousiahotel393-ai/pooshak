@@ -2,7 +2,7 @@
  * Pexels API client (image search). Uses the synced key from integration_settings; sends it ONLY
  * in the Authorization header, never logs it. In-memory cache per query+page+filters (short TTL)
  * avoids repeat requests / re-renders. Respects the rate limit (429 → back off, no bypass).
- * Docs: https://www.pexels.com/api/
+ * Docs: https://www.pexels.com/api
  */
 
 import { getPexelsKey } from './integrationSettingsService';

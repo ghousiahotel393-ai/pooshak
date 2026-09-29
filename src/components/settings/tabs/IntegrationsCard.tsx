@@ -77,7 +77,7 @@ export function IntegrationsCard() {
       <p className="text-[12px] text-neutral-500 dark:text-neutral-400 mb-3 leading-relaxed">
         Add a free Pexels API key to search stock photos for products from the Media library.
         The key is stored securely, synced to all devices, and used only for image search.
-        {' '}<a href="https://www.pexels.com/api/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+        {' '}<a href="https://www.pexels.com/api" target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-primary hover:underline">
           Get a free key <ExternalLink className="w-3 h-3" />
         </a>
       </p>

@@ -76,7 +76,7 @@ export function PexelsSearchTab({ onPick }: { onPick: (imageValue: string) => vo
             className="w-full h-9 pl-8 pr-3 rounded-md bg-neutral-50 dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-[13px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
           />
         </div>
-        <a href="https://www.pexels.com" target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-[11px] text-neutral-400 hover:text-primary">
+        <a href="https://www.pexels.com/api" target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-[11px] text-neutral-400 hover:text-primary">
           Photos provided by Pexels <ExternalLink className="w-3 h-3" />
         </a>
       </div>
