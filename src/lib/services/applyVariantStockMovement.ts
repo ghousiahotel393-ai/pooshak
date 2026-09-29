@@ -5,7 +5,8 @@
  */
 
 import { Product } from '../../types';
-import { localQueryOne, updateRow } from '../../data';
+import { localQueryOne, updateRow, insertRow } from '../../data';
+import { safeRandomUUID } from '../crypto/uuid';
 import { variantStockHistoryService } from './variantStockHistoryService';
 
 export async function applyVariantStockMovement(params: {
@@ -51,4 +52,52 @@ export async function applyVariantStockMovement(params: {
     balanceAfter: newVariantStock,
     cashierName: params.cashierName || 'System',
   } as any);
+
+  if (changeQty !== 0 && (params.type === 'adjustment' || params.type === 'initial' || params.type === 'purchase')) {
+    const purchaseId = safeRandomUUID();
+    const nowIso = (params.createdAt || new Date()).toISOString();
+    const label = params.variantLabel || variant.cardTitle || variant.option1 || '';
+    const vCost = variant.cost || product.cost || 0;
+    const vPrice = variant.price || product.price || 0;
+    const recordType = changeQty > 0 ? 'Stock IN' : 'Adjustment';
+    await insertRow('purchase_records', {
+      id: purchaseId,
+      type: recordType,
+      product_id: product.id,
+      product_name: product.name,
+      sku: variant.sku || product.sku || null,
+      variant_id: variantId,
+      variant_label: label,
+      quantity: changeQty,
+      cost_price: vCost,
+      retail_price: vPrice,
+      total_amount: Math.abs(changeQty) * vCost,
+      supplier: product.supplier || (changeQty > 0 ? 'Direct Stock In' : 'Manual Adjustment'),
+      added_by: params.cashierName || 'System',
+      notes: params.note || (changeQty > 0 ? `Variant Stock Added (${label})` : `Variant Stock Reduced (${label})`),
+      purchased_at: nowIso,
+      created_at: nowIso,
+      updated_at: nowIso,
+    });
+    try {
+      const { useInventoryStore } = await import('../../stores');
+      useInventoryStore.getState().addPurchaseRecord({
+        id: purchaseId,
+        productId: product.id,
+        productName: product.name,
+        sku: variant.sku || product.sku || '',
+        variantId,
+        variantLabel: label,
+        quantity: changeQty,
+        costPrice: vCost,
+        retailPrice: vPrice,
+        totalAmount: Math.abs(changeQty) * vCost,
+        supplier: product.supplier || (changeQty > 0 ? 'Direct Stock In' : 'Manual Adjustment'),
+        addedBy: params.cashierName || 'System',
+        notes: params.note || (changeQty > 0 ? `Variant Stock Added (${label})` : `Variant Stock Reduced (${label})`),
+        date: new Date(nowIso),
+        type: recordType,
+      });
+    } catch {}
+  }
 }

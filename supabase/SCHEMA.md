@@ -162,6 +162,12 @@
   store — so two offline devices that guessed the same invoice number both sync with distinct
   final numbers, zero error, zero data loss, and no permanent Failed bundle.
 
+### Initial stock & edit procurement logs (0026)
+- **purchase_records backfill (0026)**: creates a 'Stock IN' procurement log row for active products
+  with existing stock where no purchase_record existed. Ensures Inventory History (`/inventory/history`)
+  accurately shows total procurement and stock in. Product create/update bundles and variant edits now
+  atomically record `purchase_records` alongside `inventory_ledger`.
+
 ### Repair safety net (0015)
 - **repair_quarantine**: `id`, `table_name`, `row_id`, `payload` (jsonb), `reason`, `created_at`.
   RLS enabled with `anon/authenticated` all-access. `scripts/repair-halfsaved.mjs` moves

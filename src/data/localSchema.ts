@@ -377,6 +377,7 @@ export const LOCAL_SCHEMA_MIGRATIONS: string[] = [
   `ALTER TABLE bundle_items ADD COLUMN deleted_at TEXT`,
   `ALTER TABLE staff_users ADD COLUMN permissions TEXT NOT NULL DEFAULT '{}'`,
   `ALTER TABLE bundles ADD COLUMN barcode TEXT`,
+  `INSERT INTO purchase_records (id, operation_id, type, product_id, product_name, sku, quantity, cost_price, retail_price, total_amount, supplier, supplier_id, added_by, notes, purchased_at, created_at, updated_at) SELECT 'pr_init_' || p.id, 'op_init_' || p.id, 'Stock IN', p.id, p.name, p.sku, p.stock, COALESCE(p.cost_price, 0), COALESCE(p.retail_price, 0), p.stock * COALESCE(p.cost_price, 0), COALESCE(s.name, 'Initial Stock'), p.supplier_id, 'Initial Entry', 'Initial Stock Balance', COALESCE(p.created_at, datetime('now')), COALESCE(p.created_at, datetime('now')), COALESCE(p.created_at, datetime('now')) FROM products p LEFT JOIN suppliers s ON p.supplier_id = s.id WHERE p.active = 1 AND p.track_inventory = 1 AND p.stock > 0 AND p.stock < 990000 AND NOT EXISTS (SELECT 1 FROM purchase_records pr WHERE pr.product_id = p.id AND pr.deleted_at IS NULL)`,
 ];
 
 /** All synced table names (used by the pull side of the sync engine). */

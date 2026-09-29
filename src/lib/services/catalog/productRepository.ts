@@ -13,7 +13,7 @@ import { safeRandomUUID } from '../../crypto/uuid';
 import { resolveCategoryOp, resolveSupplierOp } from './catalogResolvers';
 import { mapSqliteProduct, serializeProductColumns } from './productMapper';
 import { resolveImageRecord, deleteOrphanImage, isImageHash } from '../../media/localImageStore';
-import { buildInventoryLedgerOp, dispatchInventoryTxEvent, type InventoryTxRecord } from '../inventory/inventoryLedgerRepository';
+import { buildCreateStockOps, buildUpdateStockOps, dispatchProductStockEvents } from './productStockOps';
 import { buildPriceHistoryOp } from '../priceHistoryService';
 
 export { mapSqliteProduct };
@@ -120,24 +120,21 @@ export async function createProduct(
     });
   }
 
-  // Append-only INITIAL stock ledger row (Rule 7), inside the same bundle (§1.5.6).
-  let ledgerRec: InventoryTxRecord | null = null;
-  if (product.trackInventory && initialStock > 0) {
-    ledgerRec = {
-      id: `itx_init_${id}`,
-      productId: id,
-      type: 'INITIAL',
-      quantity: initialStock,
-      balanceAfter: initialStock,
-      referenceType: 'AUDIT',
-      referenceId: id,
-      deviceId: '',
-      userId,
-      notes: 'Initial Stock on Create',
-      createdAt: now,
-    };
-    ops.push(buildInventoryLedgerOp(ledgerRec));
-  }
+  // Append-only INITIAL stock ledger row (Rule 7) + purchase_records log, inside the bundle (§1.5.6).
+  const stockBundle = buildCreateStockOps({
+    productId: id,
+    productName: product.name,
+    sku: product.sku,
+    initialStock,
+    cost: product.cost || 0,
+    price: product.price || 0,
+    supplierName: sup.created?.name || product.supplier,
+    supplierId: sup.id,
+    trackInventory: Boolean(product.trackInventory),
+    userId,
+    now,
+  });
+  ops.push(...stockBundle.ops);
 
   try {
     await atomicWrite(ops, { operation_id, action: 'create_product' });
@@ -147,7 +144,7 @@ export async function createProduct(
   }
 
   // Post-commit reactive side effects (bundle already durable).
-  if (ledgerRec) dispatchInventoryTxEvent(ledgerRec);
+  await dispatchProductStockEvents(stockBundle.ledgerRec, stockBundle.purchaseRec);
   try {
     const { useInventoryStore } = await import('../../../stores');
     if (cat.created) useInventoryStore.getState().addCategory({ id: cat.created.id, name: cat.created.name, active: true, createdAt: new Date(now) });
@@ -236,25 +233,26 @@ export async function updateProduct(
     }
   }
 
-  // Append-only stock adjustment (Rule 7), inside the bundle (§1.5.6).
-  let ledgerRec: InventoryTxRecord | null = null;
-  if (merged.trackInventory && existing.stock !== newStock) {
-    const diff = newStock - existing.stock;
-    ledgerRec = {
-      id: `itx_adj_${id}_${now}`,
-      productId: id,
-      type: diff > 0 ? 'RESTOCK' : 'ADJUSTMENT',
-      quantity: diff,
-      balanceAfter: newStock,
-      referenceType: 'ADJUSTMENT',
-      referenceId: id,
-      deviceId: '',
-      userId,
-      notes: `Stock adjustment (${existing.stock} -> ${newStock})`,
-      createdAt: now,
-    };
-    ops.push(buildInventoryLedgerOp(ledgerRec));
-  }
+  // Append-only stock adjustment (Rule 7) + purchase_records log, inside the bundle (§1.5.6).
+  const wasTracked = existing.trackInventory !== false && (existing.stock || 0) < 990000;
+  const isTracked = merged.trackInventory !== false && newStock < 990000;
+
+  const stockBundle = buildUpdateStockOps({
+    productId: id,
+    productName: merged.name,
+    sku: merged.sku,
+    existingStock: existing.stock || 0,
+    newStock,
+    wasTracked,
+    isTracked,
+    cost: merged.cost || 0,
+    price: merged.price || 0,
+    supplierName: sup.created?.name || merged.supplier,
+    supplierId: sup.id,
+    userId,
+    now,
+  });
+  ops.push(...stockBundle.ops);
 
   // Price/cost change audit (append-only), inside the SAME bundle so it can never half-save.
   const priceChanged = updates.price !== undefined && Number(existing.price || 0) !== Number(merged.price || 0);
@@ -277,7 +275,7 @@ export async function updateProduct(
     throw err;
   }
 
-  if (ledgerRec) dispatchInventoryTxEvent(ledgerRec);
+  await dispatchProductStockEvents(stockBundle.ledgerRec, stockBundle.purchaseRec);
   try {
     const { useInventoryStore } = await import('../../../stores');
     if (cat.created) useInventoryStore.getState().addCategory({ id: cat.created.id, name: cat.created.name, active: true, createdAt: new Date(now) });

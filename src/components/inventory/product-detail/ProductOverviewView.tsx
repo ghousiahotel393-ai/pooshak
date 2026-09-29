@@ -105,6 +105,24 @@ export function ProductOverview({ d }: { d: ProductDetailController }) {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[11px] font-mono uppercase tracking-wider text-neutral-500">{"Stock Qty"}</p>
+                      {formData.trackInventory !== false && parseFloat(formData.stock) !== (product.stock || 0) && (
+                        <Button
+                          variant="ghost"
+                          onClick={async () => {
+                            try {
+                              const newStock = parseFloat(formData.stock) || 0;
+                              const saved = await productsService.update(product.id, { stock: newStock });
+                              useProductsStore.getState().updateProduct(saved);
+                              sonner.success('Stock quantity updated');
+                            } catch (_e) {
+                              sonner.error('Failed to save stock quantity');
+                            }
+                          }}
+                          className="!min-h-0 !p-0 !bg-transparent text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+                        >
+                          {"Save"}
+                        </Button>
+                      )}
                     </div>
                     <input
                       type="number"
