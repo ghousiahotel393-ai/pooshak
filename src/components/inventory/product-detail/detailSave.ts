@@ -104,9 +104,10 @@ export async function performSave(ctx: DetailCtx) {
       }
     }
 
-    const _saved = await productsService.update(ctx.product.id, updatedProduct);
+    const actorName = resolveActorName(ctx.profile);
+    const saved = await productsService.update(ctx.product.id, updatedProduct, actorName);
     await productToppingsService.setByProduct(ctx.product.id, (ctx as any).toppingIds || []);
-    useProductsStore.getState().updateProduct(updatedProduct);
+    useProductsStore.getState().updateProduct({ ...updatedProduct, ...saved });
     sonner.success('Product updated successfully');
     ctx.setIsEditMode(false);
   } catch (_error) {

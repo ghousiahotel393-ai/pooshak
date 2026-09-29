@@ -5,7 +5,7 @@ import type { ProductDetailController } from './useProductDetail';
 
 export function ProductDetailHeader({ d }: { d: ProductDetailController }) {
   const {
-    product, onBack, formData, isEditMode, setIsEditMode, setShowMediaLibrary,
+    product, onBack, formData, setFormData, isEditMode, setIsEditMode, setShowMediaLibrary,
     isInfinite, isOut, isLow, stockPct,
   } = d;
 
@@ -69,7 +69,7 @@ export function ProductDetailHeader({ d }: { d: ProductDetailController }) {
             {isEditMode ? (
               <input
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
                 className="bg-neutral-50 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08] px-3 py-1.5 rounded-md text-[16px] font-medium text-neutral-900 dark:text-white outline-none focus:border-primary text-center sm:text-left transition-colors"
                 placeholder={'Product Name *'.replace(' *', '')}
               />
@@ -79,12 +79,12 @@ export function ProductDetailHeader({ d }: { d: ProductDetailController }) {
             <div className="flex items-center justify-center sm:justify-start gap-4 mt-2">
               <div className="flex flex-col">
                 <p className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest leading-none mb-1">{"SKU"}</p>
-                <span className="font-mono text-xs text-gray-600 dark:text-gray-400 font-bold">{product.sku}</span>
+                <span className="font-mono text-xs text-gray-600 dark:text-gray-400 font-bold">{isEditMode && formData.sku ? formData.sku : product.sku}</span>
               </div>
               <div className="w-px h-6 bg-gray-100 dark:bg-white/5" />
               <div className="flex flex-col">
                 <p className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest leading-none mb-1">{"Category"}</p>
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-bold">{product.category}</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400 font-bold">{isEditMode && formData.category ? formData.category : product.category}</span>
               </div>
             </div>
           </div>
