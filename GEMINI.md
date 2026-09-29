@@ -115,6 +115,7 @@
 9. **100% Zero-Refresh Reactivity (0ms Screen Updates):** Tamam POS operations (Sales, Deletions, Restock, Adjustments, Wallets, Badges, Expenses, Ledger) ko 100% reactive hona lazmi hai — yani jo action hua, wo 0 millisecond me screen par reflect ho bina kisi refresh ke.
 10. **Cross-Platform Parity (EXE / DMG / APK / IPA), Smooth-Fast 60 FPS & Zero-Cache Mandate:** Windows (.exe), macOS (.dmg), Android (.apk), and iOS (.ipa) builds share 100% identical business logic. Stale browser/service worker caches are strictly prohibited; 0ms reactive UI updates are backed solely by authoritative local SQLite mirror.
 11. **Permanent Architectural Fix (Zero Band-Aids):** Kabhi bhi kisi calculation, stock mismatch, ya logic bug par temporary patch ya superficial band-aid na lagayein. Har issue ko uske fundamental architectural root cause par solve karein.
+12. **Multi-Project Deployment & DB Migration Sync (`env backups/`):** `env backups/` me maujood تمام projects/stores ke liye code change hamesha ALL git remotes (`pooshak`, `zposnew`, `origin`) par push hoga, aur schema/migration change par `node scripts/supabase-migrate.mjs --all` chala kar tamam projects ki Supabase databases ko update kiya jayega. Kisi client ka name code me hardcode karna strictly banned hai.
 
 ---
 

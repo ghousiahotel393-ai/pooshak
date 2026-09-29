@@ -229,6 +229,12 @@ use the `atomicWrite` single-op path and need **no** RPC unless they touch 2+ ta
    seeds, env, verification). Whenever setup/provisioning changes, update that guide in the same
    task. A new clone must be doable by following that one doc alone.
 
+7. **Multi-Project Synchronous Deployment & DB Migration (`env backups/`):**
+   - The directory `env backups/` holds connection configurations (`.env*`) for all active stores/projects.
+   - **Zero hardcoding:** Never hardcode any shop's name, URL, keys, or IDs into source code.
+   - **Code Changes → Push to ALL Remotes:** Any code fix or feature MUST be pushed to ALL configured git remotes (`pooshak`, `zposnew`, `origin`, and any additional remotes representing projects in `env backups/`).
+   - **Schema / Migration Changes → Migrate ALL Projects:** Whenever database schema or migrations change (new migration file added in `supabase/migrations/`), run `node scripts/supabase-migrate.mjs --all` to apply migrations to every project configured in `env backups/` and `.env.local`. Always confirm and report the status of all projects so no client is left on an outdated schema.
+
 ---
 
 ## 1.7 SINGLE-CONNECTION SAFETY + TWO-WAY SYNC (PERMANENT — NO PATCH)
