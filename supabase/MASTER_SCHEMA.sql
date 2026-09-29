@@ -1970,3 +1970,13 @@ $$;
 
 grant execute on function public.apply_bundle(text, text, jsonb) to anon, authenticated;
 
+-- ####### SOURCE: supabase/migrations/0028_clean_store_phone.sql #######
+-- Migration 0028: Clean store_phone trailing decimals and restore leading zero
+UPDATE public.store_settings
+SET store_phone = REGEXP_REPLACE(store_phone, '\.0+$', '')
+WHERE store_phone ~ '\.0+$';
+
+UPDATE public.store_settings
+SET store_phone = '0' || store_phone
+WHERE store_phone ~ '^3[0-9]{9}$';
+

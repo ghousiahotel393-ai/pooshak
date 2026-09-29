@@ -26,6 +26,7 @@ export function renderMonospaceBody(ctx: ReceiptCtx) {
       style={{
         width: paperWidthPx,
         maxWidth: paperWidthPx,
+        boxSizing: 'border-box',
         margin: '0 auto',
         position: 'relative',
         paddingTop: `${Math.max(0, padTop)}mm`,
@@ -52,8 +53,8 @@ export function renderMonospaceBody(ctx: ReceiptCtx) {
       {renderHeaderSection(ctx)}
 
       <div style={{
-        paddingLeft: `${Math.max(0, padLeft)}mm`,
-        paddingRight: `${Math.max(0, padRight)}mm`,
+        paddingLeft: '0mm',
+        paddingRight: '0mm',
         position: 'relative',
         left: `${(padLeft < 0 ? padLeft : 0) - (padRight < 0 ? padRight : 0)}mm`,
       }}>

@@ -50,27 +50,6 @@ export function ProductGrid({ onAddToCart, onOpenDrafts, onAddTab: _onAddTab, is
     prevSearchRef.current = searchTerm;
   }, [searchTerm, selectedCategory]);
 
-  useEffect(() => {
-    const term = searchTerm.trim();
-    if (term.length < 3) return;
-
-    const timer = setTimeout(() => {
-      const found = findProductByBarcode(appProducts, term, false);
-
-      if (found) {
-        onAddToCart(found);
-        setSearchTerm('');
-        sonner.success(`Added: ${found.name}`);
-
-        if (!isMobileDevice) {
-          setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 50);
-        }
-      }
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm, appProducts, onAddToCart]);
-
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       const barcode = e.currentTarget.value.trim();
@@ -96,6 +75,17 @@ export function ProductGrid({ onAddToCart, onOpenDrafts, onAddTab: _onAddTab, is
     (navigator.maxTouchPoints > 0 && /Macintosh/i.test(navigator.userAgent));
 
   const filteredProducts = useMemo(() => filterProducts(appProducts, searchTerm, selectedCategory), [appProducts, searchTerm, selectedCategory]);
+
+  // Build productId → quantity once per render instead of scanning the cart per product (O(n×m)).
+  const cartQtyByProduct = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const item of appCart) {
+      if (!item.bundleId && !item.bundle_id) {
+        m.set(item.product.id, (m.get(item.product.id) || 0) + item.quantity);
+      }
+    }
+    return m;
+  }, [appCart]);
 
   const categories = ['All', '__BUNDLES__', ...Array.from(new Set((appProducts ?? []).map(p => p.category))).filter(Boolean)];
   const isTouchMode = appSettings?.interfaceMode === 'touch';
@@ -179,7 +169,6 @@ export function ProductGrid({ onAddToCart, onOpenDrafts, onAddTab: _onAddTab, is
           ) : (
             <div className={getGridClasses(gridCols)}>
               {filteredProducts.map((product) => {
-                const cartItem = appCart.find(item => !item.bundleId && !item.bundle_id && item.product.id === product.id);
                 return (
                   <ProductCard
                     key={product.id}
@@ -215,7 +204,7 @@ export function ProductGrid({ onAddToCart, onOpenDrafts, onAddTab: _onAddTab, is
                         onAddToCart(p);
                       }
                     }}
-                    cartQuantity={cartItem?.quantity || 0}
+                    cartQuantity={cartQtyByProduct.get(product.id) || 0}
                     currency={getCurrencySymbol(appSettings.currency)}
                     isTouchMode={isTouchMode}
                     gridCols={gridCols}

@@ -24,7 +24,7 @@ export function ReceiptPrint({ sale, onClose }: ReceiptPrintProps) {
   const renderReceiptBody = () => {
     if (isNewLayout) {
       return (
-        <div id="receipt-content" style={{ width: paperWidthPx, maxWidth: paperWidthPx, margin: '0 auto' }}>
+        <div id="receipt-content" style={{ width: paperWidthPx, maxWidth: paperWidthPx, margin: '0 auto', boxSizing: 'border-box' }}>
           {renderNewLayout(ctx)}
         </div>
       );

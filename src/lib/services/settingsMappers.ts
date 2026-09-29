@@ -1,5 +1,6 @@
 import { AppSettings } from '../../types';
 import { SETTINGS_ID } from '../ids';
+import { cleanStorePhone } from './phoneSanitizer';
 
 const toBool = (val: any, fallback: boolean): boolean => {
   if (val === undefined || val === null) return fallback;
@@ -17,7 +18,7 @@ export const mapSettings = (item: any): AppSettings => {
     // Core Identity
     storeName: s.store_name !== undefined ? s.store_name : s.storeName,
     storeAddress: s.store_address !== undefined ? s.store_address : s.storeAddress,
-    storePhone: s.store_phone !== undefined ? s.store_phone : s.storePhone,
+    storePhone: cleanStorePhone(s.store_phone !== undefined ? s.store_phone : s.storePhone),
     storeEmail: s.store_email !== undefined ? s.store_email : s.storeEmail,
     storeLogo: s.store_logo !== undefined ? s.store_logo : s.storeLogo,
     storeWebsite: s.store_website !== undefined ? s.store_website : s.storeWebsite,
@@ -145,7 +146,7 @@ export const toRemoteSettings = (s: Partial<AppSettings>) => {
 
   if ('storeName' in s) { remote.store_name = s.storeName ?? null; }
   if ('storeAddress' in s) { remote.store_address = s.storeAddress ?? null; }
-  if ('storePhone' in s) { remote.store_phone = s.storePhone ?? null; }
+  if ('storePhone' in s) { remote.store_phone = cleanStorePhone(s.storePhone); }
   if ('storeEmail' in s) { remote.store_email = s.storeEmail ?? null; }
   if ('storeLogo' in s) { remote.store_logo = s.storeLogo ?? null; }
   if ('storeWebsite' in s) { remote.store_website = s.storeWebsite ?? null; }

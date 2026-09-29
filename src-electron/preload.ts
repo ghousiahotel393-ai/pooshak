@@ -8,6 +8,8 @@ try {
 }
 
 const electronAPI = {
+  isElectron: true,
+  printHtml: (html: string, options?: any) => ipcRenderer.invoke('print:printHtml', html, options),
   sqlite: {
     open: (dbName: string) => ipcRenderer.invoke('sqlite:open', dbName),
     close: () => ipcRenderer.invoke('sqlite:close'),
@@ -30,6 +32,7 @@ const electronAPI = {
   print: {
     printRaw: (printerName: string, data: number[]) => ipcRenderer.invoke('print:printRaw', printerName, data),
     getPrinters: () => ipcRenderer.invoke('print:getPrinters'),
+    printHtml: (html: string, options?: any) => ipcRenderer.invoke('print:printHtml', html, options),
   },
   app: {
     getPlatform: () => ipcRenderer.invoke('app:getPlatform'),

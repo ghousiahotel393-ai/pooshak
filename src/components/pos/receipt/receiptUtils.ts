@@ -17,38 +17,63 @@ export function buildPrintHtml(
   const thermalWidth = is58mm ? '48mm' : '72mm';
   const finalWidth = isA4 ? '100%' : thermalWidth;
 
+  const defaultPadH = isA4 ? 20 : is58mm ? 3.5 : 4.5;
+  const padLeft = (typeof settings?.receiptPaddingLeft === 'number' && settings.receiptPaddingLeft > 0)
+    ? settings.receiptPaddingLeft
+    : defaultPadH;
+  const padRight = (typeof settings?.receiptPaddingRight === 'number' && settings.receiptPaddingRight > 0)
+    ? settings.receiptPaddingRight
+    : defaultPadH;
+  const padTop = typeof settings?.receiptPaddingTop === 'number' ? settings.receiptPaddingTop : (isA4 ? 15 : 2);
+  const padBottom = typeof settings?.receiptPaddingBottom === 'number' ? settings.receiptPaddingBottom : (isA4 ? 15 : 10);
+
   return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
-  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  * { box-sizing: border-box !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { margin: 0; padding: 0; background: #fff !important; width: 100%; }
   @page { margin: 0 !important; size: ${pageSizeCSS}; }
   #print-container {
     width: ${finalWidth} !important;
     max-width: ${finalWidth} !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 auto !important;
+    padding-left: ${Math.max(0, padLeft)}mm !important;
+    padding-right: ${Math.max(0, padRight)}mm !important;
+    padding-top: ${Math.max(0, padTop)}mm !important;
+    padding-bottom: ${Math.max(0, padBottom)}mm !important;
+    box-sizing: border-box !important;
     position: relative !important;
-    left: ${settings.receiptOffsetX || 0}mm !important;
+    left: ${settings?.receiptOffsetX || 0}mm !important;
     background: #fff !important;
     color: #000 !important;
     display: block !important;
     word-wrap: break-word;
     font-family: ${fontFamily};
   }
+  #print-container * {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
+  #print-container > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+  }
   .header-segment {
     text-align: center !important;
     position: relative !important;
-    left: ${settings.receiptHeaderOffsetX || 0}mm !important;
+    left: ${settings?.receiptHeaderOffsetX || 0}mm !important;
     width: 100% !important;
     display: block !important;
   }
   .footer-segment {
     text-align: center !important;
     position: relative !important;
-    left: ${settings.receiptFooterOffsetX || 0}mm !important;
+    left: ${settings?.receiptFooterOffsetX || 0}mm !important;
     width: 100% !important;
     display: block !important;
   }

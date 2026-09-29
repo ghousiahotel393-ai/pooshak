@@ -221,7 +221,7 @@ const appBundles = useAppStore(s => s.bundles);
     // @ts-ignore -- electronAPI is injected by the optional Electron shell only
     if (window.electronAPI && window.electronAPI.isElectron) {
       // @ts-ignore -- electronAPI is injected by the optional Electron shell only
-      window.electronAPI.printHtml(printHTML);
+      window.electronAPI.printHtml(printHTML, { silent: true, is58mm: true });
     } else {
       const iframe = document.createElement('iframe');
       iframe.style.cssText = 'position:fixed; right:0; bottom:0; width:0; height:0; border:none; visibility:hidden; z-index:-1;';

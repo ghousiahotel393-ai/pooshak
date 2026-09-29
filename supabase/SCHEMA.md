@@ -174,6 +174,14 @@
   accurately shows total procurement and stock in. Product create/update bundles and variant edits now
   atomically record `purchase_records` alongside `inventory_ledger`.
 
+### Barcode Print Tracking (0027) — APPEND-ONLY
+- **barcode_print_log**: tracks printed barcode quantities per product/variant so "Auto-load Non-printed"
+  can calculate exactly which items have pending labels. Atomically committed via bundle RPC.
+
+### Store Phone Decimal Cleanup & Zero Restoration (0028)
+- **store_settings.store_phone**: cleans trailing float decimals (`.0`) caused by numeric coercion
+  and restores leading national zero for 10-digit mobile numbers. Protected in settingsService and mappers.
+
 ### Repair safety net (0015)
 - **repair_quarantine**: `id`, `table_name`, `row_id`, `payload` (jsonb), `reason`, `created_at`.
   RLS enabled with `anon/authenticated` all-access. `scripts/repair-halfsaved.mjs` moves

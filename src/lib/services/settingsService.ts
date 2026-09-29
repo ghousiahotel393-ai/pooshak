@@ -10,6 +10,7 @@ import { AppSettings } from '../../types';
 import { localQueryOne, insertRow, updateRow } from '../../data';
 import { mapSettings, toRemoteSettings } from './settingsMappers';
 import { DEVICE_LOCAL_SETTINGS_KEYS } from './settings/settingsHelper';
+import { cleanStorePhone } from './phoneSanitizer';
 
 const STORE_ROW_ID = '00000000-0000-4000-8000-000000000001';
 const RECEIPT_ROW_ID = '00000000-0000-4000-8000-000000000002';
@@ -40,6 +41,14 @@ const RECEIPT_COLS = new Set([
   'barcode_margin_x', 'barcode_margin_y', 'barcode_gap_x', 'barcode_gap_y', 'barcode_bar_width',
 ]);
 
+const STRING_COLS = new Set([
+  'store_name', 'store_address', 'store_phone', 'store_email', 'store_website', 'store_logo',
+  'tax_id', 'currency', 'country', 'language', 'business_type',
+  'invoice_prefix', 'po_prefix', 'default_sale_type',
+  'receipt_paper_size', 'receipt_density', 'receipt_template',
+  'receipt_header', 'receipt_footer', 'barcode_paper_size'
+]);
+
 /** Booleans -> 0/1 and numeric strings -> numbers so integer columns accept the value. */
 function coerce(v: any): any {
   if (typeof v === 'boolean') return v ? 1 : 0;
@@ -51,8 +60,16 @@ function splitRemote(remote: Record<string, any>): { store: Record<string, any>;
   const store: Record<string, any> = {};
   const receipt: Record<string, any> = {};
   for (const [k, v] of Object.entries(remote)) {
-    if (STORE_COLS.has(k)) store[k] = coerce(v);
-    else if (RECEIPT_COLS.has(k)) receipt[k] = coerce(v);
+    let val: any;
+    if (k === 'store_phone') {
+      val = cleanStorePhone(v);
+    } else if (STRING_COLS.has(k)) {
+      val = v === null || v === undefined ? '' : String(v);
+    } else {
+      val = coerce(v);
+    }
+    if (STORE_COLS.has(k)) store[k] = val;
+    else if (RECEIPT_COLS.has(k)) receipt[k] = val;
     // else: device-local / non-persisted column — ignored (localStorage handles it).
   }
   return { store, receipt };

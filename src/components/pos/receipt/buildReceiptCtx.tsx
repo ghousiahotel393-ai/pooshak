@@ -88,27 +88,46 @@ export function useReceiptCtx(sale: Sale): ReceiptCtx {
 
   const padTop = typeof settings.receiptPaddingTop === 'number' ? settings.receiptPaddingTop : (isA4 ? 15 : 2);
   const padBottom = typeof settings.receiptPaddingBottom === 'number' ? settings.receiptPaddingBottom : (isA4 ? 15 : 10);
-  const padLeft = typeof settings.receiptPaddingLeft === 'number' ? settings.receiptPaddingLeft : (isA4 ? 24 : 2);
-  const padRight = typeof settings.receiptPaddingRight === 'number' ? settings.receiptPaddingRight : (isA4 ? 24 : 2);
+  const defaultPadH = isA4 ? 20 : is58mm ? 3.5 : 4.5;
+  const padLeft = (typeof settings.receiptPaddingLeft === 'number' && settings.receiptPaddingLeft > 0)
+    ? settings.receiptPaddingLeft
+    : defaultPadH;
+  const padRight = (typeof settings.receiptPaddingRight === 'number' && settings.receiptPaddingRight > 0)
+    ? settings.receiptPaddingRight
+    : defaultPadH;
   const offsetX = settings.receiptOffsetX || 0;
   const currencyCode = settings.currency || 'PKR';
 
   const currentCountry = getCountryByCode(settings.country || 'PK');
   const taxLabel = currentCountry?.taxLabel || 'Tax';
 
-  const bodyPadL = `${Math.max(0, padLeft)}mm`;
-  const bodyPadR = `${Math.max(0, padRight)}mm`;
+  // baseContainer provides the unified outer margin channel; inner bodyPad is 0 to prevent double-insetting
+  const bodyPadL = '0mm';
+  const bodyPadR = '0mm';
 
   const { shBundles, shStandalone, bd, shDealDiscount, shItemDiscount, shBillDiscount } = computeGrouped(activeSale, appBundles);
 
   const baseContainer: React.CSSProperties = {
-    width: paperWidthPx, maxWidth: paperWidthPx, margin: '0 auto', position: 'relative',
-    paddingTop: `${Math.max(0, padTop)}mm`, paddingBottom: `${Math.max(0, padBottom)}mm`,
-    paddingLeft: `${Math.max(0, padLeft)}mm`, paddingRight: `${Math.max(0, padRight)}mm`,
-    left: `${settings.receiptOffsetX || 0}mm`, marginTop: padTop < 0 ? `${padTop}mm` : '0',
+    width: paperWidthPx,
+    maxWidth: paperWidthPx,
+    boxSizing: 'border-box',
+    margin: '0 auto',
+    position: 'relative',
+    paddingTop: `${Math.max(0, padTop)}mm`,
+    paddingBottom: `${Math.max(0, padBottom)}mm`,
+    paddingLeft: `${Math.max(0, padLeft)}mm`,
+    paddingRight: `${Math.max(0, padRight)}mm`,
+    left: `${settings.receiptOffsetX || 0}mm`,
+    marginTop: padTop < 0 ? `${padTop}mm` : '0',
     marginBottom: padBottom < 0 ? `${padBottom}mm` : '0',
-    fontFamily, fontSize: `${fs.body}px`, fontWeight: baseWeight, color: '#000', background: '#fff',
-    lineHeight: '1.4', wordWrap: 'break-word', overflowWrap: 'break-word',
+    fontFamily,
+    fontSize: `${fs.body}px`,
+    fontWeight: baseWeight,
+    color: '#000',
+    background: '#fff',
+    lineHeight: '1.4',
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
   };
 
   const refundWatermark = activeSale.status === 'refunded' ? (

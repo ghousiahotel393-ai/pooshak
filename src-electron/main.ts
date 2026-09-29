@@ -3,6 +3,7 @@ import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import Database from 'better-sqlite3';
 import { platform } from 'os';
+import { registerPrintIpc } from './printIpc';
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
@@ -210,48 +211,7 @@ ipcMain.handle('fs:getDocumentsPath', async () => {
   return getDocumentsPath();
 });
 
-ipcMain.handle('print:printRaw', async (_event, printerName: string, data: number[]) => {
-  try {
-    const { execFile } = await import('child_process');
-    const { promisify } = await import('util');
-    const execFileAsync = promisify(execFile);
-    
-    const buffer = Buffer.from(data);
-    const tempPath = join(app.getPath('temp'), `zpos-print-${Date.now()}.bin`);
-    const fs = await import('fs/promises');
-    await fs.writeFile(tempPath, buffer);
-    
-    if (platform() === 'win32') {
-      await execFileAsync('cmd.exe', ['/c', `copy /b "${tempPath}" "\\\\.\\${printerName}"`]);
-    } else {
-      await execFileAsync('lp', ['-d', printerName, '-o', 'raw', tempPath]);
-    }
-    
-    await fs.unlink(tempPath);
-    return true;
-  } catch (err) {
-    console.error('[Electron] Print failed:', err);
-    return false;
-  }
-});
-
-ipcMain.handle('print:getPrinters', async () => {
-  try {
-    const { execFile } = await import('child_process');
-    const { promisify } = await import('util');
-    const execFileAsync = promisify(execFile);
-    
-    if (platform() === 'win32') {
-      const { stdout } = await execFileAsync('wmic', ['printer', 'get', 'name']);
-      return stdout.split('\n').map(s => s.trim()).filter(s => s && s !== 'Name');
-    } else {
-      const { stdout } = await execFileAsync('lpstat', ['-a']);
-      return stdout.split('\n').map(line => line.split(' ')[0]).filter(Boolean);
-    }
-  } catch {
-    return [];
-  }
-});
+registerPrintIpc(() => mainWindow);
 
 ipcMain.handle('app:getPlatform', async () => {
   return platform();

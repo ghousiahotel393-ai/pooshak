@@ -46,12 +46,27 @@ export function useReceiptActions(
       settings,
     });
 
+    const savedConfig = (() => {
+      try {
+        const raw = localStorage.getItem('pos_hardware_printer_config');
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    })();
+    const targetPrinter = savedConfig?.address || '';
+
     // @ts-ignore -- electronAPI is injected by the optional Electron shell only
     if (window.electronAPI && window.electronAPI.isElectron) {
-      console.log('[ReceiptPrint] Using Electron print');
+      console.log('[ReceiptPrint] Using Electron silent print:', isAutoPrint, 'target:', targetPrinter || 'Default');
       try {
         // @ts-ignore -- electronAPI is injected by the optional Electron shell only
-        await window.electronAPI.printHtml(printHTML);
+        await window.electronAPI.printHtml(printHTML, {
+          silent: isAutoPrint,
+          printerName: targetPrinter,
+          is58mm,
+          isA4,
+        });
       } catch (error) {
         console.error('Electron print failed:', error);
       }

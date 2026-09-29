@@ -75,6 +75,22 @@ export function PrinterHardwareTab() {
     }
   };
 
+  const [detectedPrinters, setDetectedPrinters] = useState<{ name: string; isDefault: boolean }[]>([]);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.print?.getPrinters) {
+      (window as any).electronAPI.print.getPrinters().then((printers: any[]) => {
+        if (Array.isArray(printers)) {
+          const list = printers.map((p) => {
+            if (typeof p === 'string') return { name: p, isDefault: false };
+            return { name: p.name || p.displayName || '', isDefault: !!p.isDefault };
+          }).filter(p => p.name);
+          setDetectedPrinters(list);
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
   return (
     <div className="space-y-6 text-[13px] tracking-[-0.01em]">
       <Card className="p-5 border border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-surface shadow-none rounded-md">
@@ -104,7 +120,7 @@ export function PrinterHardwareTab() {
                       : 'bg-neutral-50 dark:bg-app border-neutral-200 dark:border-white/[0.08] text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                   }`}
                 >
-                  {t === 'network' ? 'LAN (TCP/IP)' : t === 'usb' ? 'USB Port' : 'Bluetooth'}
+                  {t === 'network' ? 'LAN (TCP/IP)' : t === 'usb' ? 'USB / System' : 'Bluetooth'}
                 </button>
               ))}
             </div>
@@ -133,7 +149,7 @@ export function PrinterHardwareTab() {
             </div>
           </div>
 
-          {/* Address */}
+          {/* Address for Network */}
           {config.transport === 'network' && (
             <div>
               <label className="block text-[12px] font-medium text-neutral-700 dark:text-neutral-300 mb-1">
@@ -149,6 +165,40 @@ export function PrinterHardwareTab() {
                 />
                 <Wifi className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-2.5" />
               </div>
+            </div>
+          )}
+
+          {/* USB / System Printer Selector */}
+          {config.transport === 'usb' && (
+            <div>
+              <label className="block text-[12px] font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                Target USB / System Printer
+              </label>
+              {detectedPrinters.length > 0 ? (
+                <select
+                  value={config.address || ''}
+                  onChange={(e) => updateConfig({ address: e.target.value })}
+                  className="w-full h-8 px-2.5 rounded bg-neutral-50 dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-[13px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary"
+                >
+                  <option value="">Default System Printer</option>
+                  {detectedPrinters.map((p) => (
+                    <option key={p.name} value={p.name}>
+                      {p.name} {p.isDefault ? '(System Default)' : ''}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="e.g. POS-80 (leave empty for Default)"
+                  value={config.address || ''}
+                  onChange={(e) => updateConfig({ address: e.target.value })}
+                  className="w-full h-8 px-3 rounded bg-neutral-50 dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-[13px] text-neutral-900 dark:text-white font-mono focus:outline-none focus:border-primary"
+                />
+              )}
+              <p className="text-[11px] text-neutral-500 mt-1 font-mono">
+                Auto Print sends silent background jobs directly to this printer
+              </p>
             </div>
           )}
 

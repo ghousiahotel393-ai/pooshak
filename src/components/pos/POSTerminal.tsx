@@ -119,7 +119,7 @@ export function POSTerminal() {
         </div>
 
         {appCart.length > 0 && (
-          <div className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom,0px)+74px)] left-3 right-3 max-w-md mx-auto h-[54px] px-3 rounded-[22px] bg-white/90 dark:bg-[#121214]/90 backdrop-blur-2xl backdrop-saturate-[180%] border border-black/[0.08] dark:border-white/[0.12] shadow-[0_10px_30px_-4px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.65),0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center justify-between z-40 select-none transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
+          <div className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom,0px)+74px)] left-3 right-3 max-w-md mx-auto h-[54px] px-3 rounded-[22px] bg-white dark:bg-[#121214] border border-black/[0.08] dark:border-white/[0.12] shadow-[0_10px_30px_-4px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.65),0_2px_8px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center justify-between z-40 select-none transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
             <div className="flex items-center space-x-2.5 min-w-0">
               <div className="relative shrink-0">
                 <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-white/[0.08] flex items-center justify-center text-neutral-800 dark:text-neutral-100 transition-colors">
