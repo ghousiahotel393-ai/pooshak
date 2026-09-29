@@ -42,7 +42,7 @@ export function useBarcodeSettings() {
   const [showBarcode, setShowBarcode] = useState<boolean>(toBool(stored.showBarcode ?? appSettings.barcodeShowBarcode, true));
   const [showQr, setShowQr] = useState<boolean>(toBool(stored.showQr ?? appSettings.barcodeShowQr, false));
   const [qrSize, setQrSize] = useState<number>(stored.qrSize ?? appSettings.barcodeQrSize ?? 30);
-  const [nameLines, setNameLines] = useState<1 | 2>(stored.nameLines ?? (appSettings.barcodeNameLines as 1 | 2) ?? 1);
+  const [nameLines, setNameLines] = useState<1 | 2 | 3>(stored.nameLines ?? (appSettings.barcodeNameLines as 1 | 2 | 3) ?? 2);
   const [barcodeFontSize, setBarcodeFontSize] = useState<number>(stored.barcodeFontSize ?? appSettings.barcodeFontSize ?? 8);
   const [contentScale, setContentScale] = useState<number>(stored.contentScale ?? appSettings.barcodeContentScale ?? 1.0);
   const [marginX, setMarginX] = useState<number>(stored.marginX ?? appSettings.barcodeMarginX ?? 0);

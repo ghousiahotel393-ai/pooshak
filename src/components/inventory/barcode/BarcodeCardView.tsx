@@ -33,7 +33,7 @@ interface BarcodeCardProps {
     showPrice: boolean;
     showCategory: boolean;
     showSku: boolean;
-    nameLines: 1 | 2;
+    nameLines: 1 | 2 | 3;
     qrSz: number;
     previewScale: number;
     cellW: number;
@@ -88,18 +88,37 @@ export function BarcodeCard({
                 alignItems: 'center', justifyContent: 'center',
                 gap: `${Math.max(2, Math.round(4 * ratio))}px`,
             }}>
-                {Boolean(showName) ? (
-                    <p style={{
-                        fontSize: `${fs.name}px`, fontWeight: 900,
-                        lineHeight: `${fs.nameLH}px`, textTransform: 'uppercase',
-                        color: '#111827', wordBreak: 'break-word', textAlign: 'center',
-                        width: '100%', margin: 0, flexShrink: 0,
-                        display: '-webkit-box',
-                        WebkitLineClamp: nameLines,
-                        WebkitBoxOrient: 'vertical' as const,
-                        overflow: 'hidden',
-                    }}>{product.name}</p>
-                ) : null}
+                {Boolean(showName) ? (() => {
+                    const nameLen = product.name.length;
+                    let calcNameFs = fs.name;
+                    if (nameLen > 36) {
+                        calcNameFs = Math.max(6, Math.round(fs.name * 0.72));
+                    } else if (nameLen > 25) {
+                        calcNameFs = Math.max(6.5, Math.round(fs.name * 0.80));
+                    } else if (nameLen > 18 && nameLines > 1) {
+                        calcNameFs = Math.max(7, Math.round(fs.name * 0.88));
+                    }
+                    const calcLineH = Math.max(7, Math.round(calcNameFs * 1.15));
+
+                    return (
+                        <p style={{
+                            fontSize: `${calcNameFs}px`,
+                            fontWeight: 900,
+                            lineHeight: `${calcLineH}px`,
+                            textTransform: 'uppercase',
+                            color: '#111827',
+                            wordBreak: 'break-word',
+                            textAlign: 'center',
+                            width: '100%',
+                            margin: 0,
+                            flexShrink: 0,
+                            display: '-webkit-box',
+                            WebkitLineClamp: nameLines,
+                            WebkitBoxOrient: 'vertical' as const,
+                            overflow: 'hidden',
+                        }} title={product.name}>{product.name}</p>
+                    );
+                })() : null}
 
                 {(Boolean(showPrice) || Boolean(showCategory && product.category)) ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, justifyContent: 'center', flexWrap: 'wrap', maxWidth: '100%' }}>
