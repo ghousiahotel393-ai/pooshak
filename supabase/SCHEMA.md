@@ -58,6 +58,12 @@
   reference_type, reference_id, device_id, user_id, notes. Never edited.
 - **current_stock** (VIEW): `SUM(quantity)` per product/variant.
 
+### Phase (0027) — Barcode print tracking (APPEND-ONLY)
+- **barcode_print_log**: product_id, variant_id, quantity, printed_by, device_id, note.
+  Each confirmed print run appends one row per product via a single atomic bundle. Total
+  printed per product = `SUM(quantity)`; `unprinted = max(0, received − printed)`. Replaces the
+  old localStorage tracker so counts are accurate and converge across devices.
+
 ### Phase 4 — Sales (0004)
 - **sales** (header, non-additive status/refunded_amount): invoice_number (unique), customer/
   salesman attribution, subtotal/discount/tax/extra/total/tendered/change, payment_method,
@@ -177,7 +183,8 @@
 
 ## Append-only tables (never UPDATE/DELETE)
 `inventory_ledger`, `sale_items`, `sale_voids`, `sale_refunds`, `payments`, `customer_ledger`,
-`audit_logs`.
+`audit_logs`, `stock_history`, `variant_stock_history`, `price_history`, `sale_audit_log`,
+`barcode_print_log`.
 
 ## Module inventory checklist (plan Section 7) — all covered
 Store identity ✅ · Products ✅ · Product images (Storage) ✅ · Categories ✅ · Bundles ✅ ·

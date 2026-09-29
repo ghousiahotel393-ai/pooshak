@@ -130,32 +130,35 @@ export function BarcodeQuantitiesSection({
                             key={p.id}
                             className="flex items-start gap-3 px-3 py-2.5 rounded-lg border border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02]"
                         >
-                            <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/[0.08] overflow-hidden flex-shrink-0 flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-lg bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/[0.08] overflow-hidden flex-shrink-0 flex items-center justify-center">
                                 <ProductThumb
                                     image={p.image}
                                     alt={p.name}
                                     imgClassName="w-full h-full object-cover"
-                                    fallback={<Package className="h-4 w-4 text-neutral-400" />}
+                                    fallback={<Package className="h-3.5 w-3.5 text-neutral-400" />}
                                 />
                             </div>
 
                             <div className="min-w-0 flex-1">
-                                <p className="text-[13px] font-medium text-neutral-900 dark:text-white leading-snug line-clamp-2" title={p.name}>
+                                {/* Full title, no truncation — wraps onto as many lines as needed */}
+                                <p className="text-[13px] font-medium text-neutral-900 dark:text-white leading-snug break-words">
                                     {p.name}
                                 </p>
-                                <span className="block text-[11px] text-neutral-500 font-mono truncate mt-0.5">
-                                    {p.barcodeValue || p.barcode || p.sku || 'NO-SKU'}
-                                </span>
-                                {unprinted > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setQuantities(q => ({ ...q, [p.id]: unprinted }))}
-                                        title="Set this product's quantity to its unprinted count"
-                                        className="mt-1 inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-md font-mono font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition active:scale-95"
-                                    >
-                                        +{unprinted} unprinted
-                                    </button>
-                                )}
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                                    <span className="text-[11px] text-neutral-500 font-mono">
+                                        {p.barcodeValue || p.barcode || p.sku || 'NO-SKU'}
+                                    </span>
+                                    {unprinted > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuantities(q => ({ ...q, [p.id]: unprinted }))}
+                                            title="Set this product's quantity to its unprinted count"
+                                            className="inline-flex items-center whitespace-nowrap text-[10px] px-1.5 py-0.5 rounded-md font-mono font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition active:scale-95"
+                                        >
+                                            +{unprinted} unprinted
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Right column: remove-x on top, stepper below — never pushes the name content */}

@@ -134,6 +134,7 @@ Update this table whenever a bundle is added or changed.
 | supplier_payment | suppliers(balance), payments | apply_bundle (generic) | ✅ done (Phase 5) |
 | bundle_deal | bundles, bundle_items | apply_bundle (generic) | ✅ done (Phase 5, create + item-replace) |
 | expense | expenses (single table; delete via atomicWrite) | — (single-op path) | ✅ done (Phase 5) |
+| barcode_print | barcode_print_log (append-only; one row per printed product) | apply_bundle (generic) | ✅ done (0027; cloud-direct, idempotent, replaces localStorage tracker) |
 | purchase_order | purchase_orders, purchase_order_items | apply_bundle (generic) | ⏳ no write path yet (module not built) |
 
 Single-table actions (categories, suppliers, customers, discounts, settings, toppings, etc.)

@@ -40,6 +40,7 @@ const SYNCED = [
   'expense_categories', 'expenses', 'purchase_records', 'roles', 'staff_users', 'audit_logs',
   'stock_history', 'variant_stock_history', 'price_history', 'sale_audit_log',
   'toppings', 'product_addons', 'salesmen', 'purchase_orders', 'purchase_order_items',
+  'barcode_print_log',
 ];
 const TBL = SYNCED.join('|');
 

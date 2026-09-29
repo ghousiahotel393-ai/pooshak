@@ -150,6 +150,14 @@ export const LOCAL_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS idx_inv_ledger_product ON inventory_ledger(product_id);`,
   `CREATE INDEX IF NOT EXISTS idx_inv_ledger_ref ON inventory_ledger(reference_type, reference_id);`,
 
+  // ---- barcode_print_log (append-only) ----
+  `CREATE TABLE IF NOT EXISTS barcode_print_log (
+    id TEXT PRIMARY KEY, operation_id TEXT NOT NULL UNIQUE,
+    product_id TEXT NOT NULL, variant_id TEXT, quantity REAL NOT NULL DEFAULT 0,
+    printed_by TEXT, device_id TEXT, note TEXT, created_at TEXT NOT NULL
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_barcode_print_log_product ON barcode_print_log(product_id);`,
+
   // ---- sales / sale_items / sale_voids / sale_refunds ----
   `CREATE TABLE IF NOT EXISTS sales (
     id TEXT PRIMARY KEY, operation_id TEXT NOT NULL UNIQUE, invoice_number TEXT UNIQUE NOT NULL,
@@ -391,6 +399,7 @@ export const SYNCED_TABLES = [
   'toppings', 'product_addons', 'salesmen', 'purchase_orders', 'purchase_order_items',
   'integration_settings',
   'media_assets',
+  'barcode_print_log',
 ] as const;
 
 export type SyncedTable = (typeof SYNCED_TABLES)[number];
@@ -400,4 +409,5 @@ export const APPEND_ONLY_TABLES: SyncedTable[] = [
   'inventory_ledger', 'sale_items', 'sale_voids', 'sale_refunds',
   'payments', 'customer_ledger', 'audit_logs',
   'stock_history', 'variant_stock_history', 'price_history', 'sale_audit_log',
+  'barcode_print_log',
 ];

@@ -48,9 +48,9 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
         } catch {
             // ignore JSON error
         }
-        const q: Record<string, number> = {};
-        products.forEach(p => { q[p.id] = 1; });
-        return q;
+        // Start empty — the seed effect below fills each product's default from its
+        // unprinted count (falling back to 1) once the unprinted map is computed.
+        return {};
     });
 
     const [unprintedMap, setUnprintedMap] = useState<Record<string, number>>({});
@@ -79,11 +79,33 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
     useEffect(() => {
         if (products.length > 0 && localProducts.length === 0) {
             setLocalProducts(products);
-            const q: Record<string, number> = {};
-            products.forEach(p => { q[p.id] = 1; });
-            setQuantities(q);
         }
     }, [products, localProducts.length]);
+
+    // Auto-load: seed each newly-selected product's default quantity from its own unprinted
+    // count (>0), else 1. Persisted or manually-set quantities are never overwritten.
+    const seededRef = useRef<Set<string>>(new Set());
+    useEffect(() => {
+        const present = new Set(localProducts.map(p => p.id));
+        for (const id of Array.from(seededRef.current)) {
+            if (!present.has(id)) seededRef.current.delete(id);
+        }
+        setQuantities(prev => {
+            const next = { ...prev };
+            let changed = false;
+            for (const p of localProducts) {
+                if (seededRef.current.has(p.id)) continue;
+                if (prev[p.id] !== undefined) { seededRef.current.add(p.id); continue; }
+                if (p.id in unprintedMap) {
+                    const u = unprintedMap[p.id];
+                    next[p.id] = u > 0 ? u : 1;
+                    seededRef.current.add(p.id);
+                    changed = true;
+                }
+            }
+            return changed ? next : prev;
+        });
+    }, [localProducts, unprintedMap]);
 
     const updateQty = (id: string, d: number) => {
         setQuantities(prev => ({
@@ -185,11 +207,11 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
         pageStyle: getPageStyle(),
     });
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         if (totalLabels > 0 && handlePrintFn) {
-            recordPrintedQuantities(quantities);
+            await recordPrintedQuantities(quantities);
             handlePrintFn();
-            refreshUnprinted(localProducts);
+            await refreshUnprinted(localProducts);
         }
     };
 

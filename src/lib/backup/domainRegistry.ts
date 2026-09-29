@@ -68,6 +68,7 @@ export const DOMAIN_REGISTRY: DomainDef[] = [
       { name: 'stock_history', appendOnly: true },
       { name: 'variant_stock_history', appendOnly: true },
       { name: 'price_history', appendOnly: true },
+      { name: 'barcode_print_log', appendOnly: true },
     ],
     deps: ['products'],
   },

@@ -204,6 +204,47 @@ async function testConcurrentTransactionsSerialized() {
   assert(db.prepare('SELECT COUNT(*) AS n FROM sync_queue').get().n === 6, 'all 6 bundles queued');
 }
 
+async function testBarcodePrintLogBundle() {
+  console.log('\n[8] barcode_print_log: one print run = one all-or-nothing bundle, idempotent');
+  const mk = () => {
+    const db = new Database(':memory:');
+    db.exec(`
+      CREATE TABLE barcode_print_log (id TEXT PRIMARY KEY, operation_id TEXT UNIQUE, product_id TEXT,
+        variant_id TEXT, quantity NUMERIC, printed_by TEXT, device_id TEXT, note TEXT, created_at TEXT);
+      CREATE TABLE sync_queue (operation_id TEXT PRIMARY KEY, table_name TEXT, operation_type TEXT,
+        payload TEXT, status TEXT, retry_count INTEGER, last_error TEXT, created_at TEXT, updated_at TEXT);
+    `);
+    setLocalDbForTesting(makeDriver(db));
+    return db;
+  };
+  const n = (db, t) => db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get().n;
+
+  // Success: three products printed in one bundle -> three rows, one queue entry.
+  let db = mk();
+  await atomicWrite([
+    { table: 'barcode_print_log', op: 'insert', row: { product_id: 'p1', quantity: 162 } },
+    { table: 'barcode_print_log', op: 'insert', row: { product_id: 'p2', quantity: 4 } },
+    { table: 'barcode_print_log', op: 'insert', row: { product_id: 'p3', quantity: 9 } },
+  ], { operation_id: 'print-run-1', action: 'barcode_print' });
+  assert(n(db, 'barcode_print_log') === 3, 'success: 3 print-log rows appended');
+  assert(n(db, 'sync_queue') === 1, 'success: exactly one bundle queued for the run');
+
+  // Failure mid-bundle (bad column) -> zero rows, zero queue (all-or-nothing).
+  db = mk();
+  await expectThrow(() => atomicWrite([
+    { table: 'barcode_print_log', op: 'insert', row: { product_id: 'p1', quantity: 5 } },
+    { table: 'barcode_print_log', op: 'insert', row: { product_id: 'p2', quantity: 5, bogus: 'x' } },
+  ], { operation_id: 'print-run-2', action: 'barcode_print' }), 'throws on bad print-log row');
+  assert(n(db, 'barcode_print_log') === 0, 'failure: zero print-log rows');
+  assert(n(db, 'sync_queue') === 0, 'failure: no bundle queued');
+
+  // Append-only guard: updating/deleting the log is rejected (Rule 7).
+  db = mk();
+  await expectThrow(() => atomicWrite([
+    { table: 'barcode_print_log', op: 'update', id: 'x', patch: { quantity: 1 } },
+  ], { action: 'barcode_print_edit' }), 'update on barcode_print_log throws (append-only)');
+}
+
 async function main() {
   console.log('PHASE 7 — failure-injection suite');
   await testRowWriteFailure();
@@ -213,6 +254,7 @@ async function main() {
   await testProductImageBundleAllOrNothing();
   await testResolverNeverEmpty();
   await testConcurrentTransactionsSerialized();
+  await testBarcodePrintLogBundle();
   console.log(`\nAll ${passed} assertions passed.`);
 }
 
