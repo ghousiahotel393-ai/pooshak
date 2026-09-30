@@ -24,6 +24,21 @@ const toBool = (val: any, fallback: boolean): boolean => {
   return Boolean(val);
 };
 
+export const DEFAULT_BARCODE_DIMENSIONS = {
+  contentScale: 1.0,
+  barcodeZoom: 1.0,
+  barcodeScale: 1.0,
+  barcodeHeight: 30,
+  barcodeBarWidth: 1.1,
+  qrSize: 30,
+  barcodeFontSize: 8,
+  labelPadding: 8,
+  marginX: 0,
+  marginY: 0,
+  gapX: 0,
+  gapY: 0,
+};
+
 export function useBarcodeSettings() {
   const appSettings = useSettingsStore(s => s.settings);
   const stored = getStoredSettings() || {};
@@ -35,22 +50,22 @@ export function useBarcodeSettings() {
   const [showName, setShowName] = useState<boolean>(toBool(stored.showName ?? appSettings.barcodeShowName, true));
   const [showSku, setShowSku] = useState<boolean>(toBool(stored.showSku ?? appSettings.barcodeShowSku, false));
   const [showCategory, setShowCategory] = useState<boolean>(toBool(stored.showCategory ?? appSettings.barcodeShowCategory, false));
-  const [barcodeScale, setBarcodeScale] = useState<number>(stored.barcodeScale ?? appSettings.barcodeScale ?? 1.0);
-  const [barcodeHeight, setBarcodeHeight] = useState<number>(stored.barcodeHeight ?? appSettings.barcodeHeight ?? 30);
-  const [labelPadding, setLabelPadding] = useState<number>(stored.labelPadding ?? appSettings.barcodePadding ?? 8);
+  const [barcodeScale, setBarcodeScale] = useState<number>(stored.barcodeScale ?? appSettings.barcodeScale ?? DEFAULT_BARCODE_DIMENSIONS.barcodeScale);
+  const [barcodeHeight, setBarcodeHeight] = useState<number>(stored.barcodeHeight ?? appSettings.barcodeHeight ?? DEFAULT_BARCODE_DIMENSIONS.barcodeHeight);
+  const [labelPadding, setLabelPadding] = useState<number>(stored.labelPadding ?? appSettings.barcodePadding ?? DEFAULT_BARCODE_DIMENSIONS.labelPadding);
   const [labelBorder, setLabelBorder] = useState<boolean>(toBool(stored.labelBorder ?? appSettings.barcodeBorder, true));
   const [showBarcode, setShowBarcode] = useState<boolean>(toBool(stored.showBarcode ?? appSettings.barcodeShowBarcode, true));
   const [showQr, setShowQr] = useState<boolean>(toBool(stored.showQr ?? appSettings.barcodeShowQr, false));
-  const [qrSize, setQrSize] = useState<number>(stored.qrSize ?? appSettings.barcodeQrSize ?? 30);
+  const [qrSize, setQrSize] = useState<number>(stored.qrSize ?? appSettings.barcodeQrSize ?? DEFAULT_BARCODE_DIMENSIONS.qrSize);
   const [nameLines, setNameLines] = useState<1 | 2 | 3>(stored.nameLines ?? (appSettings.barcodeNameLines as 1 | 2 | 3) ?? 2);
-  const [barcodeFontSize, setBarcodeFontSize] = useState<number>(stored.barcodeFontSize ?? appSettings.barcodeFontSize ?? 8);
-  const [contentScale, setContentScale] = useState<number>(stored.contentScale ?? appSettings.barcodeContentScale ?? 1.0);
-  const [marginX, setMarginX] = useState<number>(stored.marginX ?? appSettings.barcodeMarginX ?? 0);
-  const [marginY, setMarginY] = useState<number>(stored.marginY ?? appSettings.barcodeMarginY ?? 0);
-  const [gapX, setGapX] = useState<number>(stored.gapX ?? appSettings.barcodeGapX ?? 0);
-  const [gapY, setGapY] = useState<number>(stored.gapY ?? appSettings.barcodeGapY ?? 0);
-  const [barcodeBarWidth, setBarcodeBarWidth] = useState<number>(stored.barcodeBarWidth ?? appSettings.barcodeBarWidth ?? 0.8);
-  const [barcodeZoom, setBarcodeZoom] = useState<number>(stored.barcodeZoom ?? 1.0);
+  const [barcodeFontSize, setBarcodeFontSize] = useState<number>(stored.barcodeFontSize ?? appSettings.barcodeFontSize ?? DEFAULT_BARCODE_DIMENSIONS.barcodeFontSize);
+  const [contentScale, setContentScale] = useState<number>(stored.contentScale ?? appSettings.barcodeContentScale ?? DEFAULT_BARCODE_DIMENSIONS.contentScale);
+  const [marginX, setMarginX] = useState<number>(stored.marginX ?? appSettings.barcodeMarginX ?? DEFAULT_BARCODE_DIMENSIONS.marginX);
+  const [marginY, setMarginY] = useState<number>(stored.marginY ?? appSettings.barcodeMarginY ?? DEFAULT_BARCODE_DIMENSIONS.marginY);
+  const [gapX, setGapX] = useState<number>(stored.gapX ?? appSettings.barcodeGapX ?? DEFAULT_BARCODE_DIMENSIONS.gapX);
+  const [gapY, setGapY] = useState<number>(stored.gapY ?? appSettings.barcodeGapY ?? DEFAULT_BARCODE_DIMENSIONS.gapY);
+  const [barcodeBarWidth, setBarcodeBarWidth] = useState<number>(stored.barcodeBarWidth ?? appSettings.barcodeBarWidth ?? DEFAULT_BARCODE_DIMENSIONS.barcodeBarWidth);
+  const [barcodeZoom, setBarcodeZoom] = useState<number>(stored.barcodeZoom ?? DEFAULT_BARCODE_DIMENSIONS.barcodeZoom);
   const [isSaving, setIsSaving] = useState(false);
 
   // Automatically persist all settings changes locally so they survive reload
@@ -101,6 +116,22 @@ export function useBarcodeSettings() {
     finally { setIsSaving(false); }
   };
 
+  const resetDimensionsToDefault = () => {
+    setContentScale(DEFAULT_BARCODE_DIMENSIONS.contentScale);
+    setBarcodeZoom(DEFAULT_BARCODE_DIMENSIONS.barcodeZoom);
+    setBarcodeScale(DEFAULT_BARCODE_DIMENSIONS.barcodeScale);
+    setBarcodeHeight(DEFAULT_BARCODE_DIMENSIONS.barcodeHeight);
+    setBarcodeBarWidth(DEFAULT_BARCODE_DIMENSIONS.barcodeBarWidth);
+    setQrSize(DEFAULT_BARCODE_DIMENSIONS.qrSize);
+    setBarcodeFontSize(DEFAULT_BARCODE_DIMENSIONS.barcodeFontSize);
+    setLabelPadding(DEFAULT_BARCODE_DIMENSIONS.labelPadding);
+    setMarginX(DEFAULT_BARCODE_DIMENSIONS.marginX);
+    setMarginY(DEFAULT_BARCODE_DIMENSIONS.marginY);
+    setGapX(DEFAULT_BARCODE_DIMENSIONS.gapX);
+    setGapY(DEFAULT_BARCODE_DIMENSIONS.gapY);
+    sonner.success('Dimensions reset to default');
+  };
+
   return {
     paperSize, setPaperSize,
     a4Columns, setA4Columns,
@@ -126,6 +157,7 @@ export function useBarcodeSettings() {
     barcodeBarWidth, setBarcodeBarWidth,
     barcodeZoom, setBarcodeZoom,
     isSaving, saveAsDefault,
+    resetDimensionsToDefault,
     appSettings
   };
 }

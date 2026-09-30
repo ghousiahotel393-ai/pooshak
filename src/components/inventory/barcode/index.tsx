@@ -1,6 +1,6 @@
 import { useBarcodeSettings } from './useBarcodeSettings';
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import { sonner } from '../../../lib/sonner';
 import { Printer, X } from 'lucide-react';
 import { Product } from '../../../types';
 import { Button } from '../../../shared/ui';
@@ -98,17 +98,118 @@ export function BarcodeGenerator({ products, onClose, onProductsChange, onClearA
         return `@page { margin: 0; }`;
     };
 
-    const handlePrintFn = useReactToPrint({
-        content: () => componentRef.current,
-        documentTitle: `Barcodes_${Date.now()}`,
-        pageStyle: getPageStyle(),
-    });
-
     const handlePrint = async () => {
-        if (totalLabels > 0 && handlePrintFn) {
+        if (totalLabels <= 0) return;
+        const el = componentRef.current;
+        if (!el) {
+            sonner.error('No printable content found');
+            return;
+        }
+
+        const pageStyle = getPageStyle();
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Barcodes_${Date.now()}</title>
+  <style>
+    * {
+      box-sizing: border-box !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #fff !important;
+      width: 100% !important;
+      color: #000 !important;
+    }
+    ${pageStyle}
+    .page-indicator { display: none !important; }
+    .print-page {
+      transform: none !important;
+      margin: 0 auto !important;
+      margin-bottom: 0 !important;
+      box-shadow: none !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .print-page:last-child {
+      page-break-after: auto !important;
+      break-after: auto !important;
+    }
+    .label-to-print {
+      transform: none !important;
+      margin-bottom: 0 !important;
+      box-shadow: none !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+  </style>
+</head>
+<body>
+  ${el.innerHTML}
+</body>
+</html>`;
+
+        // 1. In Electron desktop app
+        // @ts-ignore
+        if (window.electronAPI && window.electronAPI.isElectron) {
+            try {
+                // @ts-ignore
+                await window.electronAPI.printHtml(html, { silent: false, isA4: paperSize === 'A4' });
+            } catch (err) {
+                console.error('[BarcodePrint] Electron print error:', err);
+            }
+        } else {
+            // 2. In browser: use direct popup window or iframe (exact printReport pattern)
+            let printed = false;
+            try {
+                const win = window.open('', '_blank', 'width=1024,height=768');
+                if (win) {
+                    win.document.write(html + '<script>window.onload=function(){window.print();}</script>');
+                    win.document.close();
+                    printed = true;
+                }
+            } catch (e) {
+                console.warn('[BarcodePrint] Popup blocked, using iframe:', e);
+            }
+
+            if (!printed) {
+                const iframe = document.createElement('iframe');
+                iframe.style.cssText = 'position:fixed; top:-9999px; left:-9999px; width:800px; height:1000px; border:0; opacity:0; pointer-events:none;';
+                document.body.appendChild(iframe);
+                const idoc = iframe.contentWindow?.document;
+                if (idoc) {
+                    idoc.open();
+                    idoc.write(html);
+                    idoc.close();
+                    setTimeout(() => {
+                        try {
+                            iframe.contentWindow?.focus();
+                            iframe.contentWindow?.print();
+                        } catch (e) {
+                            console.error('[BarcodePrint] Iframe print failed:', e);
+                        }
+                        setTimeout(() => {
+                            if (document.body.contains(iframe)) document.body.removeChild(iframe);
+                        }, 60000);
+                    }, 350);
+                }
+            }
+        }
+
+        // Record printed quantities asynchronously in the background so tracking converges
+        try {
             await recordPrintedQuantities(quantities);
-            handlePrintFn();
             await refreshUnprinted(localProducts);
+        } catch (err) {
+            console.warn('[BarcodePrint] Failed to record printed quantities:', err);
         }
     };
 
