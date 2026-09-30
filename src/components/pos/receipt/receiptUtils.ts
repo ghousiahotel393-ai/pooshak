@@ -19,15 +19,19 @@ export function buildPrintHtml(
   const thermalWidth = is58mm ? '48mm' : '72mm';
   const finalWidth = isA4 ? '100%' : thermalWidth;
 
-  const defaultPadH = isA4 ? 20 : is58mm ? 3.5 : 4.5;
+  const defaultPadH = isA4 ? 15 : is58mm ? 3.5 : 4.5;
   const padLeft = (typeof settings?.receiptPaddingLeft === 'number' && settings.receiptPaddingLeft > 0)
     ? settings.receiptPaddingLeft
     : defaultPadH;
   const padRight = (typeof settings?.receiptPaddingRight === 'number' && settings.receiptPaddingRight > 0)
     ? settings.receiptPaddingRight
     : defaultPadH;
-  const padTop = typeof settings?.receiptPaddingTop === 'number' ? settings.receiptPaddingTop : (isA4 ? 15 : 2);
-  const padBottom = typeof settings?.receiptPaddingBottom === 'number' ? settings.receiptPaddingBottom : (isA4 ? 15 : 10);
+  const padTop = typeof settings?.receiptPaddingTop === 'number' ? settings.receiptPaddingTop : (isA4 ? 12 : 2);
+  const padBottom = typeof settings?.receiptPaddingBottom === 'number' ? settings.receiptPaddingBottom : (isA4 ? 12 : 10);
+
+  const pageCSS = isA4
+    ? `@page { size: A4; margin: ${Math.max(8, padTop)}mm ${Math.max(10, padRight)}mm ${Math.max(10, padBottom)}mm ${Math.max(10, padLeft)}mm; }`
+    : `@page { size: ${is58mm ? '58mm auto' : '80mm auto'}; margin: 0; }`;
 
   return `<!DOCTYPE html>
 <html>
@@ -35,16 +39,16 @@ export function buildPrintHtml(
 <meta charset="utf-8">
 <style>
   * { box-sizing: border-box !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  html, body { margin: 0; padding: 0; background: #fff !important; width: 100%; }
-  @page { margin: 0 !important; size: ${pageSizeCSS}; }
+  html, body { margin: 0; padding: 0; background: #fff !important; width: 100%; color: #000 !important; }
+  ${pageCSS}
   #print-container {
     width: ${finalWidth} !important;
     max-width: ${finalWidth} !important;
     margin: 0 auto !important;
-    padding-left: ${Math.max(0, padLeft)}mm !important;
-    padding-right: ${Math.max(0, padRight)}mm !important;
-    padding-top: ${Math.max(0, padTop)}mm !important;
-    padding-bottom: ${Math.max(0, padBottom)}mm !important;
+    padding-left: ${isA4 ? 0 : Math.max(0, padLeft)}mm !important;
+    padding-right: ${isA4 ? 0 : Math.max(0, padRight)}mm !important;
+    padding-top: ${isA4 ? 0 : Math.max(0, padTop)}mm !important;
+    padding-bottom: ${isA4 ? 0 : Math.max(0, padBottom)}mm !important;
     box-sizing: border-box !important;
     position: relative !important;
     left: ${settings?.receiptOffsetX || 0}mm !important;
@@ -65,19 +69,32 @@ export function buildPrintHtml(
     padding-right: 0 !important;
     box-sizing: border-box !important;
   }
+  table, tr, td, th, .receipt-row, .avoid-break, [data-avoid-break="true"] {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  thead {
+    display: table-header-group !important;
+  }
+  tfoot {
+    display: table-footer-group !important;
+  }
+  .header-segment, .totals-segment, .footer-segment, .meta-segment, .payment-segment {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    display: block !important;
+  }
   .header-segment {
     text-align: center !important;
     position: relative !important;
     left: ${settings?.receiptHeaderOffsetX || 0}mm !important;
     width: 100% !important;
-    display: block !important;
   }
   .footer-segment {
     text-align: center !important;
     position: relative !important;
     left: ${settings?.receiptFooterOffsetX || 0}mm !important;
     width: 100% !important;
-    display: block !important;
   }
   .body-segment {
     width: 100% !important;

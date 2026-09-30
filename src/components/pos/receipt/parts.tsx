@@ -9,9 +9,9 @@ export function TwoCol(props: any) {
   const { ctx, left, right, bold = false, lg = false, style = {} } = props;
   const { clamp, baseWeight, fs } = ctx;
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontWeight: bold ? clamp(baseWeight + 200) : baseWeight, fontSize: lg ? `${fs.total}px` : 'inherit', margin: '2px 0', ...style }} cellPadding={0} cellSpacing={0}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontWeight: bold ? clamp(baseWeight + 200) : baseWeight, fontSize: lg ? `${fs.total}px` : 'inherit', margin: '2px 0', breakInside: 'avoid', pageBreakInside: 'avoid', ...style }} cellPadding={0} cellSpacing={0}>
       <tbody>
-        <tr>
+        <tr style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
           <td style={{ textAlign: 'left', textTransform: 'uppercase', padding: 0, verticalAlign: 'top' }}>{left}</td>
           <td style={{ textAlign: 'right', textTransform: 'uppercase', padding: 0, verticalAlign: 'top' }}>{right}</td>
         </tr>

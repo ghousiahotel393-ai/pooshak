@@ -79,35 +79,61 @@ export function registerPrintIpc(getMainWindow: () => BrowserWindow | null): voi
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       let targetPrinter = options?.printerName?.trim() || '';
-      if (!targetPrinter) {
-        try {
-          const printers = await printWin.webContents.getPrintersAsync();
-          const def = printers.find(p => p.isDefault) || printers[0];
+      try {
+        const printers = await printWin.webContents.getPrintersAsync();
+        const available = printers.map((p) => p.name);
+        if (targetPrinter && !available.includes(targetPrinter)) {
+          const matched = available.find(
+            (p) =>
+              p.toLowerCase().includes(targetPrinter.toLowerCase()) ||
+              targetPrinter.toLowerCase().includes(p.toLowerCase())
+          );
+          if (matched) {
+            targetPrinter = matched;
+          } else {
+            const def = printers.find((p) => p.isDefault) || printers[0];
+            targetPrinter = def ? def.name : '';
+          }
+        } else if (!targetPrinter) {
+          const def = printers.find((p) => p.isDefault) || printers[0];
           if (def) targetPrinter = def.name;
-        } catch {}
-      }
+        }
+      } catch {}
 
       const isSilent = options?.silent ?? true;
 
-      return await new Promise((resolve) => {
-        if (!printWin || printWin.isDestroyed()) {
-          resolve({ success: false, error: 'Print window destroyed' });
-          return;
-        }
+      const executePrint = (
+        printerDevice?: string,
+        silentMode = isSilent
+      ): Promise<{ success: boolean; failureReason?: string }> => {
+        return new Promise((resolve) => {
+          if (!printWin || printWin.isDestroyed()) {
+            resolve({ success: false, failureReason: 'Print window destroyed' });
+            return;
+          }
+          if (!silentMode && !printWin.isVisible()) {
+            printWin.show();
+          }
 
-        printWin.webContents.print(
-          {
-            silent: isSilent,
+          const printOptions: any = {
+            silent: silentMode,
             printBackground: true,
-            deviceName: targetPrinter || undefined,
-            margins: { marginType: 'none' },
-            pageSize: options?.is58mm
-              ? { width: 58000, height: 297000 }
-              : options?.isA4
-              ? 'A4'
-              : { width: 80000, height: 297000 },
-          },
-          (success, failureReason) => {
+            deviceName: printerDevice || undefined,
+            margins: options?.isA4 ? { marginType: 'default' } : { marginType: 'none' },
+          };
+          if (options?.isA4) {
+            printOptions.pageSize = 'A4';
+          }
+
+          printWin.webContents.print(printOptions, async (success, failureReason) => {
+            if (!success && silentMode && printerDevice) {
+              console.warn(
+                `[Electron] Silent print failed on "${printerDevice}": ${failureReason}. Retrying default printer...`
+              );
+              const retryRes = await executePrint(undefined, silentMode);
+              resolve(retryRes);
+              return;
+            }
             if (printWin && !printWin.isDestroyed()) {
               printWin.close();
               printWin = null;
@@ -116,9 +142,11 @@ export function registerPrintIpc(getMainWindow: () => BrowserWindow | null): voi
               console.warn('[Electron] Print failed:', failureReason);
             }
             resolve({ success, failureReason });
-          }
-        );
-      });
+          });
+        });
+      };
+
+      return await executePrint(targetPrinter || undefined, isSilent);
     } catch (err: any) {
       if (printWin && !printWin.isDestroyed()) {
         try { printWin.close(); } catch {}

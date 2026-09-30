@@ -13,7 +13,7 @@ export function renderItemsSection(ctx: ReceiptCtx) {
             BUNDLE / DEAL ITEMS ({shBundles.length})
           </div>
           {shBundles.map((b: any, bIdx: number) => (
-            <div key={b.bundleId} style={{ marginBottom: '6px', textTransform: 'uppercase' }}>
+            <div key={b.bundleId} style={{ marginBottom: '6px', textTransform: 'uppercase', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
               <div style={{ fontWeight: clamp(baseWeight + 300), marginBottom: '2px' }}>{bIdx + 1}. 🎁 {b.bundleQty > 1 ? `${b.bundleQty}x ` : ''}{b.bundleName}</div>
               {b.items[0]?.toppings?.length > 0 && (
                 <div style={{ fontSize: `${Math.max(8, fs.body - 2)}px`, opacity: 0.9, marginBottom: '2px', paddingLeft: '8px' }}>
@@ -52,7 +52,7 @@ export function renderItemsSection(ctx: ReceiptCtx) {
             OTHER / STANDALONE ITEMS ({shStandalone.length})
           </div>
           {shStandalone.map((item: any, index: number) => (
-            <div key={`sa-${index}`} style={{ marginBottom: '6px', textTransform: 'uppercase' }}>
+            <div key={`sa-${index}`} style={{ marginBottom: '6px', textTransform: 'uppercase', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
               <div style={{ textAlign: 'left', wordWrap: 'break-word' }}>{index + 1}. {item.product?.name || 'Item'}</div>
               {item.selectedVariantLabel && <div style={{ textAlign: 'left', fontSize: `${Math.max(8, fs.body - 2)}px`, opacity: 0.8 }}>{item.selectedVariantLabel}</div>}
               {!item.selectedVariantLabel && item.selectedVariant && <div style={{ textAlign: 'left', fontSize: `${Math.max(8, fs.body - 2)}px`, opacity: 0.8 }}>{item.selectedVariant}</div>}

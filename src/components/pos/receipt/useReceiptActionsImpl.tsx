@@ -73,16 +73,7 @@ export function useReceiptActions(
     } else {
       console.log('[ReceiptPrint] Using browser iframe print');
       const iframe = document.createElement('iframe');
-      iframe.style.cssText = `
-        position: fixed;
-        right: 0;
-        bottom: 0;
-        width: 0;
-        height: 0;
-        border: none;
-        visibility: hidden;
-        z-index: -1;
-      `;
+      iframe.style.cssText = 'position:fixed; top:-9999px; left:-9999px; width:800px; height:1000px; border:0; opacity:0; pointer-events:none;';
       document.body.appendChild(iframe);
 
       const doc = iframe.contentWindow?.document;

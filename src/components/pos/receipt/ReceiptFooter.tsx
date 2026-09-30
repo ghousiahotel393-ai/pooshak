@@ -7,7 +7,7 @@ import { type ReceiptCtx } from './types';
 export function renderFooterSection(ctx: ReceiptCtx) {
   const { settings, sale, is58mm, RECEIPT_WATERMARK } = ctx;
   return (
-    <div style={{ textAlign: 'center', marginTop: '16px', marginBottom: '24px', textTransform: 'uppercase', position: 'relative', left: `${settings.receiptFooterOffsetX || 0}mm`, width: '100%', display: 'block' }}>
+    <div style={{ textAlign: 'center', marginTop: '16px', marginBottom: '24px', textTransform: 'uppercase', position: 'relative', left: `${settings.receiptFooterOffsetX || 0}mm`, width: '100%', display: 'block', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
       {settings.receiptShowBarcode !== false && (
         <div style={{ margin: '12px auto', display: 'flex', justifyContent: 'center' }}>
           <BarcodePreview value={sale.invoiceNumber} height={40} showValue={true} options={{ width: is58mm ? 1.1 : 1.4, margin: 4 }} />

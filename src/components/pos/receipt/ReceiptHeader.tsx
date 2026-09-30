@@ -6,7 +6,7 @@ import { type ReceiptCtx } from './types';
 export function renderHeaderSection(ctx: ReceiptCtx) {
   const { settings, sale, fs, baseWeight, clamp } = ctx;
   return (
-    <div style={{ textAlign: 'center', margin: '8px 0', position: 'relative', left: `${settings.receiptHeaderOffsetX || 0}mm`, width: '100%', display: 'block' }}>
+    <div style={{ textAlign: 'center', margin: '8px 0', position: 'relative', left: `${settings.receiptHeaderOffsetX || 0}mm`, width: '100%', display: 'block', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
       {(settings.receiptShowLogo && settings.storeLogo) ? (
         <img src={settings.storeLogo} crossOrigin="anonymous" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ display: 'block', margin: '0 auto', maxHeight: '80px', maxWidth: '80%', objectFit: 'contain' }} />
       ) : (

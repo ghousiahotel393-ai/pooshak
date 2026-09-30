@@ -24,7 +24,7 @@ export function renderDiscountBreakdown(ctx: ReceiptCtx) {
 export function renderTotalsSection(ctx: ReceiptCtx) {
   const { showDiscount, sale, settings, taxLabel, currencyCode, fs, bd, baseWeight, clamp } = ctx;
   return (
-    <>
+    <div style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
       {showDiscount && <TwoCol ctx={ctx} left="SUBTOTAL" right={formatCurrency(sale.subtotal, currencyCode)} />}
       {showDiscount && renderDiscountBreakdown(ctx)}
       {(() => {
@@ -59,6 +59,6 @@ export function renderTotalsSection(ctx: ReceiptCtx) {
       {sale.status === 'refunded' && (
         <TwoCol ctx={ctx} left="REFUNDED" right={`-${formatCurrency(sale.total, currencyCode)}`} bold lg style={{ padding: '4px 0' }} />
       )}
-    </>
+    </div>
   );
 }
