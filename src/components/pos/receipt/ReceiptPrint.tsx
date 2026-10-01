@@ -34,8 +34,14 @@ export function ReceiptPrint({ sale, onClose }: ReceiptPrintProps) {
 
   if (isAutoPrint) {
     return (
-      <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom)+var(--bottom-nav-clearance))] md:pb-4 animate-in fade-in duration-150">
-        <div className="bg-white dark:bg-surface rounded-md p-6 max-w-sm w-full shadow-2xl border border-neutral-200 dark:border-white/[0.08] flex flex-col items-center text-center gap-4">
+      <Modal
+        isOpen={true}
+        onClose={handleSafeClose}
+        title="PRINTING RECEIPT"
+        subtitle="Processing thermal ESC/POS commands..."
+        maxWidth="sm"
+      >
+        <div className="flex flex-col items-center gap-4 text-center">
           <div className="relative">
             <div className="w-14 h-14 bg-neutral-100 dark:bg-white/[0.04] rounded border border-neutral-200 dark:border-white/[0.08] flex items-center justify-center">
               <Printer className="w-7 h-7 text-primary animate-pulse" />
@@ -52,18 +58,15 @@ export function ReceiptPrint({ sale, onClose }: ReceiptPrintProps) {
             <div className="bg-primary h-full animate-progress" />
           </div>
           <div className="flex flex-col gap-2 w-full">
-            <button onClick={() => handlePrint()} className="w-full h-8 bg-primary hover:bg-primary-hover text-white rounded text-[13px] font-medium transition-colors shadow-none">
+            <Button onClick={handlePrint} variant="primary" size="md" className="w-full">
               Print Manually
-            </button>
-            <button onClick={handleSafeClose} className="text-[12px] text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors">
+            </Button>
+            <Button onClick={handleSafeClose} variant="ghost" size="md" className="w-full">
               Close
-            </button>
+            </Button>
           </div>
         </div>
-        <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', pointerEvents: 'none' }}>
-          {renderReceiptBody()}
-        </div>
-      </div>
+      </Modal>
     );
   }
 

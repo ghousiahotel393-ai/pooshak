@@ -3,7 +3,7 @@ import { KeyRound, Loader2, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useUsersStore } from '../../stores';
 import { getActiveStaffUsers, getLockoutRemainingSeconds, AuthUserInfo } from '../../lib/auth/localAuthService';
-import { Button, Avatar, CapsLockIndicator } from '../../shared/ui';
+import { Button, Avatar, CapsLockIndicator, SearchableSelect } from '../../shared/ui';
 import { PinKeypad } from './PinKeypad';
 import { RealIcon } from '../../shared/icons';
 import { sonner } from '../../lib/sonner';
@@ -144,23 +144,21 @@ export function FastLockModal({ isOpen, onUnlock }: FastLockModalProps) {
               shape="square"
               className="!h-9 !w-9 rounded-md border border-gray-200 dark:border-white/[0.08]"
             />
-            <select
+            <div className="flex items-center gap-2">
+            <SearchableSelect
+              options={staffList.map(u => ({ id: u.id, label: `${u.name} (${u.role.toUpperCase()})` }))}
               value={selectedUser?.id || ''}
-              onChange={(e) => {
-                const found = staffList.find((u) => u.id === e.target.value);
+              onChange={(value) => {
+                const found = staffList.find(u => u.id === value);
                 if (found) {
                   setSelectedUser(found);
                   setPin('');
                 }
               }}
-              className="flex-1 h-7 text-[12px] bg-transparent text-gray-900 dark:text-white font-medium border-0 focus:ring-0 focus:outline-none cursor-pointer"
-            >
-              {staffList.map((u) => (
-                <option key={u.id} value={u.id} className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white">
-                  {u.name} ({u.role.toUpperCase()})
-                </option>
-              ))}
-            </select>
+              placeholder="Select operator"
+              disabled={lockoutSecs > 0 || isSubmitting}
+            />
+          </div>
           </div>
         </div>
 

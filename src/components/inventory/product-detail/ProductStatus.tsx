@@ -1,5 +1,5 @@
 import { Tag } from 'lucide-react';
-import { HelpTooltip } from '../../../shared/ui/HelpTooltip';
+import { HelpTooltip, ToggleSwitch } from '../../../shared/ui';
 import type { ProductDetailController } from './useProductDetail';
 
 export function ProductStatus({ d }: { d: ProductDetailController }) {
@@ -25,15 +25,12 @@ export function ProductStatus({ d }: { d: ProductDetailController }) {
                 </span>
                 <span className="text-[11px] text-neutral-500">{"Visible in POS"}</span>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={formData.active}
-                  onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                />
-                <div className="w-9 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-              </label>
+              <ToggleSwitch
+                checked={formData.active}
+                onChange={(checked) => setFormData({ ...formData, active: checked })}
+                label="Active"
+                size="sm"
+              />
             </div>
 
             <div className={`flex items-center justify-between p-3 rounded-md border transition-colors ${
@@ -50,20 +47,16 @@ export function ProductStatus({ d }: { d: ProductDetailController }) {
                   {formData.productType === 'variable' ? 'MANAGED BY VARIATIONS' : 'Inventory Control'}
                 </span>
               </div>
-              <label className={`relative inline-flex items-center ${formData.productType === 'variable' ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={formData.productType === 'variable' ? true : formData.trackInventory}
-                  disabled={formData.productType === 'variable'}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setFormData({ ...formData, trackInventory: checked });
-                    if (checked) setShowStockIn(true);
-                  }}
-                />
-                <div className={`w-9 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all ${formData.productType === 'variable' ? 'peer-checked:bg-neutral-400' : 'peer-checked:bg-emerald-600'}`}></div>
-              </label>
+              <ToggleSwitch
+                checked={formData.productType === 'variable' ? true : formData.trackInventory}
+                onChange={(checked) => {
+                  setFormData({ ...formData, trackInventory: checked });
+                  if (checked) setShowStockIn(true);
+                }}
+                disabled={formData.productType === 'variable'}
+                label={formData.productType === 'variable' ? 'Managed by Variations' : 'Track Inventory'}
+                size="sm"
+              />
             </div>
 
             <div className="flex items-center justify-between p-3 bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08]">
@@ -74,15 +67,12 @@ export function ProductStatus({ d }: { d: ProductDetailController }) {
                 </span>
                 <span className="text-[11px] text-neutral-500">{"No Stock Tracking"}</span>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={formData.isService}
-                  onChange={(e) => setFormData({ ...formData, isService: e.target.checked, trackInventory: e.target.checked ? false : formData.trackInventory })}
-                />
-                <div className="w-9 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-              </label>
+              <ToggleSwitch
+                checked={formData.isService}
+                onChange={(checked) => setFormData({ ...formData, isService: checked, trackInventory: checked ? false : formData.trackInventory })}
+                label="Service Item"
+                size="sm"
+              />
             </div>
 
             <div className="flex items-center justify-between p-3 bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08]">
@@ -93,15 +83,12 @@ export function ProductStatus({ d }: { d: ProductDetailController }) {
                 </span>
                 <span className="text-[11px] text-neutral-500">{"Prompt on POS"}</span>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={formData.requireSerial}
-                  onChange={(e) => setFormData({ ...formData, requireSerial: e.target.checked })}
-                />
-                <div className="w-9 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-              </label>
+              <ToggleSwitch
+                checked={formData.requireSerial}
+                onChange={(checked) => setFormData({ ...formData, requireSerial: checked })}
+                label="Require Serial"
+                size="sm"
+              />
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ interface ProductThumbProps {
   imgClassName?: string;
   fallback?: ReactNode;
   loading?: 'lazy' | 'eager';
+  decoding?: 'async' | 'sync' | 'auto';
 }
 
 export function ProductThumb({
@@ -26,5 +27,5 @@ export function ProductThumb({
 }: ProductThumbProps) {
   const url = useProductImage(image);
   if (!url) return <>{fallback}</>;
-  return <img src={url} alt={alt} className={imgClassName} loading={loading} />;
+  return <img src={url} alt={alt} className={imgClassName} loading={loading} decoding={decoding ?? 'async'} />;
 }

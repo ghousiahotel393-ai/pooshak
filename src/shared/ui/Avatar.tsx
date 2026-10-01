@@ -78,6 +78,7 @@ export function Avatar({ src, name, size = 'md', shape = 'circle', className }: 
           src={resolved}
           alt={name}
           className="h-full w-full object-cover"
+          decoding="async"
           onError={() => setImageFailed(true)}
         />
       ) : (

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Hash, RotateCcw, Eye, AlertTriangle } from 'lucide-react';
-import { Button } from '../../../shared/ui';
+import { Button, SearchableSelect } from '../../../shared/ui';
 import { useSalesStore } from '../../../stores';
 import type { ReceiptSettingsFormProps } from './ReceiptSettingsForm.types';
 
@@ -125,18 +125,18 @@ export function ReceiptInvoicingSection({
           <label className="text-[11px] font-medium text-neutral-600 dark:text-neutral-300">
             Number Length / Padding
           </label>
-          <select
-            name="invoicePadDigits"
+          <SearchableSelect
+            options={[
+              { id: '4', label: '4 Digits (e.g. 0001)' },
+              { id: '5', label: '5 Digits (e.g. 00001)' },
+              { id: '6', label: '6 Digits (e.g. 000001)' },
+              { id: '0', label: 'No Leading Zeros (e.g. 1, 2, 3)' },
+            ]}
             value={padDigits}
-            onChange={handleChange}
+            onChange={(value) => handleChange({ target: { name: 'invoicePadDigits', value } })}
             disabled={!canEditSettings}
-            className="w-full h-8 px-2.5 rounded bg-white dark:bg-app border border-neutral-200 dark:border-white/[0.08] text-[13px] text-neutral-900 dark:text-white focus:outline-none focus:border-primary font-mono"
-          >
-            <option value="4">4 Digits (e.g. 0001)</option>
-            <option value="5">5 Digits (e.g. 00001)</option>
-            <option value="6">6 Digits (e.g. 000001)</option>
-            <option value="0">No Leading Zeros (e.g. 1, 2, 3)</option>
-          </select>
+            placeholder="Select padding"
+          />
         </div>
 
         <div className="space-y-1">
