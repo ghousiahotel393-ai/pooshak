@@ -49,6 +49,7 @@ export function TransactionsManager() {
   const [selectedSalesman, setSelectedSalesman] = useState('all');
   const [_isLoadingMore, setIsLoadingMore] = useState(false);
   const [refreshKey, _setRefreshKey] = useState(0);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -60,6 +61,8 @@ export function TransactionsManager() {
         }
       } catch (err) {
         console.error('[TransactionsManager] Failed to load sales:', err);
+      } finally {
+        if (mounted) setIsInitialLoading(false);
       }
     };
 
@@ -269,6 +272,7 @@ export function TransactionsManager() {
         transactions={paginatedTransactions}
         filteredCount={filteredTransactions.length}
         isSearchingRemote={isSearchingRemote}
+        isLoading={isInitialLoading}
         currency={appSettings.currency}
         country={appSettings.country}
         canEditSale={!!canEditSale}

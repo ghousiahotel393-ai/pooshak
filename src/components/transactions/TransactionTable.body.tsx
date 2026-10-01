@@ -27,6 +27,7 @@ interface TransactionTableProps {
   onPageChange: (page: number) => void;
   pageSize: number;
   onPageSizeChange: (size: number) => void;
+  isLoading?: boolean;
 }
 
 export function TransactionTable({
@@ -98,6 +99,20 @@ export function TransactionTable({
       }
     }
   };
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="animate-pulse space-y-4 w-full max-w-4xl mx-auto">
+          <div className="h-10 bg-neutral-200 dark:bg-white/[0.05] rounded animate-pulse" />
+          <div className="h-10 bg-neutral-200 dark:bg-white/[0.05] rounded animate-pulse" />
+          <div className="h-10 bg-neutral-200 dark:bg-white/[0.05] rounded animate-pulse" />
+          <div className="h-10 bg-neutral-200 dark:bg-white/[0.05] rounded animate-pulse" />
+          <div className="h-10 bg-neutral-200 dark:bg-white/[0.05] rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] shadow-none overflow-hidden sm:min-h-[calc(100vh-340px)] min-h-[260px] flex flex-col justify-between">
       {/* Desktop View */}

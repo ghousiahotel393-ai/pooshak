@@ -164,7 +164,15 @@ export function ReportsManager() {
         </div>
       </div>
 
-      {reportType === 'sales' && (
+      {isDataLoading ? (
+        <div className="main-content-scroll p-3 sm:p-4 lg:p-6 space-y-4 bg-app min-h-full max-w-[1400px] mx-auto animate-pulse">
+          <div className="h-8 w-64 bg-neutral-200 dark:bg-white/5 rounded"></div>
+          <div className="h-10 w-full bg-neutral-200 dark:bg-white/5 rounded-md"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-neutral-200 dark:bg-white/5 rounded-md"></div>)}
+          </div>
+        </div>
+      ) : reportType === 'sales' && (
         <div className="relative z-20 mt-2 sm:mt-4">
           <SalesReport
             filteredSales={filteredSales}
@@ -191,7 +199,15 @@ export function ReportsManager() {
         </div>
       )}
 
-      {reportType === 'customers' && (
+      {isDataLoading ? (
+        <div className="main-content-scroll p-3 sm:p-4 lg:p-6 space-y-4 bg-app min-h-full max-w-[1400px] mx-auto animate-pulse">
+          <div className="h-8 w-64 bg-neutral-200 dark:bg-white/5 rounded"></div>
+          <div className="h-10 w-full bg-neutral-200 dark:bg-white/5 rounded-md"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-neutral-200 dark:bg-white/5 rounded-md"></div>)}
+          </div>
+        </div>
+      ) : reportType === 'customers' && (
         <div className="relative z-20 mt-2 sm:mt-4">
           <CustomersReport
             customerData={customerData}
@@ -202,7 +218,15 @@ export function ReportsManager() {
         </div>
       )}
 
-      {reportType === 'salesmen' && (
+      {isDataLoading ? (
+        <div className="main-content-scroll p-3 sm:p-4 lg:p-6 space-y-4 bg-app min-h-full max-w-[1400px] mx-auto animate-pulse">
+          <div className="h-8 w-64 bg-neutral-200 dark:bg-white/5 rounded"></div>
+          <div className="h-10 w-full bg-neutral-200 dark:bg-white/5 rounded-md"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-neutral-200 dark:bg-white/5 rounded-md"></div>)}
+          </div>
+        </div>
+      ) : reportType === 'salesmen' && (
         <div className="relative z-20 mt-2 sm:mt-4">
           <SalesmenReport
             salesmanData={salesmanData}
@@ -212,7 +236,15 @@ export function ReportsManager() {
         </div>
       )}
 
-      {reportType === 'expenses' && (
+      {isDataLoading ? (
+        <div className="main-content-scroll p-3 sm:p-4 lg:p-6 space-y-4 bg-app min-h-full max-w-[1400px] mx-auto animate-pulse">
+          <div className="h-8 w-64 bg-neutral-200 dark:bg-white/5 rounded"></div>
+          <div className="h-10 w-full bg-neutral-200 dark:bg-white/5 rounded-md"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-neutral-200 dark:bg-white/5 rounded-md"></div>)}
+          </div>
+        </div>
+      ) : reportType === 'expenses' && (
         <div className="relative z-20 mt-2 sm:mt-4">
           <ExpensesReport
             filteredExpenses={filteredExpenses}
@@ -226,7 +258,15 @@ export function ReportsManager() {
         </div>
       )}
 
-      {reportType === 'financial' && (
+      {isDataLoading ? (
+        <div className="main-content-scroll p-3 sm:p-4 lg:p-6 space-y-4 bg-app min-h-full max-w-[1400px] mx-auto animate-pulse">
+          <div className="h-8 w-64 bg-neutral-200 dark:bg-white/5 rounded"></div>
+          <div className="h-10 w-full bg-neutral-200 dark:bg-white/5 rounded-md"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-neutral-200 dark:bg-white/5 rounded-md"></div>)}
+          </div>
+        </div>
+      ) : reportType === 'financial' && (
         <div className="relative z-20 mt-2 sm:mt-4">
           <FinancialReport
             totalRevenue={totalRevenue}
@@ -242,7 +282,15 @@ export function ReportsManager() {
         </div>
       )}
 
-      {reportType === 'inventory' && (
+      {isDataLoading ? (
+        <div className="main-content-scroll p-3 sm:p-4 lg:p-6 space-y-4 bg-app min-h-full max-w-[1400px] mx-auto animate-pulse">
+          <div className="h-8 w-64 bg-neutral-200 dark:bg-white/5 rounded"></div>
+          <div className="h-10 w-full bg-neutral-200 dark:bg-white/5 rounded-md"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-neutral-200 dark:bg-white/5 rounded-md"></div>)}
+          </div>
+        </div>
+      ) : reportType === 'inventory' && (
         <div className="relative z-20 mt-2 sm:mt-4">
           <InventoryReport
             startDate={validStartDate}
@@ -255,7 +303,15 @@ export function ReportsManager() {
         </div>
       )}
 
-      {reportType === 'suppliers' && (
+      {isDataLoading ? (
+        <div className="main-content-scroll p-3 sm:p-4 lg:p-6 space-y-4 bg-app min-h-full max-w-[1400px] mx-auto animate-pulse">
+          <div className="h-8 w-64 bg-neutral-200 dark:bg-white/5 rounded"></div>
+          <div className="h-10 w-full bg-neutral-200 dark:bg-white/5 rounded-md"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-neutral-200 dark:bg-white/5 rounded-md"></div>)}
+          </div>
+        </div>
+      ) : reportType === 'suppliers' && (
         <div className="relative z-20 mt-2 sm:mt-4">
           <SuppliersReport
             currency={appSettings.currency}

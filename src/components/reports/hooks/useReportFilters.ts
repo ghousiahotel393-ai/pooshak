@@ -115,6 +115,10 @@ export function useReportFilters(appSettings: any, appSales: any, appExpenses: a
     reportRefunds.forEach(s => { if (s && s.id && !salesById.has(s.id)) salesById.set(s.id, s); });
     const allSalesRaw = Array.from(salesById.values());
 
+    // Precompute productById Map for O(1) addon product lookups (instead of find in loop)
+    const productById = new Map<string, any>();
+    for (const p of appProducts) productById.set(p.id, p);
+
     const allSales = allSalesRaw.map(sale => {
       if (!sale || !sale.items) return sale;
       let hasAddons = false;
@@ -126,7 +130,8 @@ export function useReportFilters(appSettings: any, appSales: any, appExpenses: a
         const addonsAsItems = item.addonItems.map(addon => {
           const addonSubtotal = (addon.price || 0) * (addon.quantity || 1) * parentQty;
           addonSubtotalSum += addonSubtotal;
-          const actualAddonProd = appProducts.find((p: any) => p.id === addon.addon.addonProductId);
+          // O(1) Map lookup instead of O(n) find
+          const actualAddonProd = productById.get(addon.addon.addonProductId);
           const addonCost = (actualAddonProd?.cost || 0) * (addon.quantity || 1) * parentQty;
           addonCostSum += addonCost;
           return {
