@@ -96,7 +96,7 @@ export const DialogProvider: React.FC = () => {
   if (!dialog) return null;
 
   return createPortal(
-    <div data-modal="true" className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] transition-all duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+    <div data-modal="true" className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom)+var(--bottom-nav-clearance))] transition-all duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/75 dark:bg-black/80"
@@ -104,7 +104,7 @@ export const DialogProvider: React.FC = () => {
       />
 
       {/* Dialog Card */}
-      <div className={`relative w-full max-w-[380px] max-h-[85dvh] sm:max-h-[90dvh] flex flex-col bg-white dark:bg-surface rounded-lg shadow-2xl border border-neutral-200 dark:border-white/[0.08] overflow-hidden transform transition-all duration-150 ${isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-2'}`}>
+      <div className={`relative w-full max-w-[380px] max-h-[calc(85dvh-env(safe-area-inset-bottom)-var(--bottom-nav-clearance))] sm:max-h-[calc(90dvh-var(--bottom-nav-clearance))] flex flex-col bg-white dark:bg-surface rounded-lg shadow-2xl border border-neutral-200 dark:border-white/[0.08] overflow-hidden transform transition-all duration-150 ${isVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-2'}`}>
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 flex flex-col items-center text-center">
           {/* Icon Header */}
           <div className={`w-10 h-10 rounded-md flex items-center justify-center mb-3.5 ${dialog.type === 'delete' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
@@ -144,7 +144,7 @@ export const DialogProvider: React.FC = () => {
         </div>
 
         {dialog.type !== 'loading' && (
-          <div className="flex-shrink-0 flex gap-2 w-full px-5 py-4 border-t border-neutral-200 dark:border-white/[0.08]">
+          <div className="flex-shrink-0 flex gap-2 w-full px-5 py-4 border-t border-neutral-200 dark:border-white/[0.08] pb-[calc(1rem+env(safe-area-inset-bottom)+var(--bottom-nav-clearance))] sm:pb-[calc(1rem+var(--bottom-nav-clearance))]">
             {dialog.cancelText && (
               <button
                 onClick={handleCancel}

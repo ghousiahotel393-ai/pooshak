@@ -83,7 +83,7 @@ export function Modal({
   if (!render) return null;
 
   const modalContent = (
-    <div ref={containerRef} data-modal="true" className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pt-6 sm:pb-6">
+    <div ref={containerRef} data-modal="true" className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6 pt-[calc(1.25rem+env(safe-area-inset-top))] pb-[calc(1.25rem+env(safe-area-inset-bottom)+var(--bottom-nav-clearance))] sm:pt-6 sm:pb-[calc(1.5rem+var(--bottom-nav-clearance))]">
       {/* Backdrop */}
       <div 
         onClick={onClose}
@@ -96,7 +96,7 @@ export function Modal({
           "relative flex flex-col w-full sm:w-[90vw] bg-white dark:bg-[#121215] border border-neutral-200 dark:border-white/10",
           "rounded-lg shadow-2xl overflow-hidden",
           maxWidthClasses[maxWidth],
-            "max-h-[calc(100dvh-2.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] md:max-h-[calc(90dvh-env(safe-area-inset-top))]",
+            "max-h-[calc(100dvh-2.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom)-var(--bottom-nav-clearance))] md:max-h-[calc(90dvh-env(safe-area-inset-top)-var(--bottom-nav-clearance))]",
           "transition-all duration-150 ease-out",
           activeOpen ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-2 scale-98 opacity-0',
           className
@@ -137,7 +137,7 @@ export function Modal({
 
         {/* Footer */}
         {footer && (
-          <div className="flex-shrink-0 px-5 sm:px-6 py-4 border-t border-neutral-200 dark:border-white/[0.08] bg-neutral-50 dark:bg-[#151518] pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4">
+          <div className="flex-shrink-0 px-5 sm:px-6 py-4 border-t border-neutral-200 dark:border-white/[0.08] bg-neutral-50 dark:bg-[#151518] pb-[calc(1rem+env(safe-area-inset-bottom)+var(--bottom-nav-clearance))] sm:pb-[calc(1rem+var(--bottom-nav-clearance))]">
             {footer}
           </div>
         )}

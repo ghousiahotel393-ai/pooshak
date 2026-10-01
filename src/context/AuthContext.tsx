@@ -53,12 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function initAuth() {
       try {
         await initDb();
-        // Bring up the Supabase-only data layer (mirror + push/pull workers).
-        try {
-          await initDataLayer();
-        } catch (e) {
-          console.warn('[dataLayer] init skipped:', (e as Error).message);
-        }
+        const { initLocalDb } = await import('../data/localDb');
+        await initLocalDb();
 
         // Check if there was a saved session
         const savedUserId = localStorage.getItem('pos_active_user_id');
@@ -66,10 +62,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { getUserById } = await import('../lib/services/users/userRepository');
           const restoredUser = await getUserById(savedUserId);
           applyUserSession(restoredUser && restoredUser.active ? restoredUser : null);
+
+          // Release loading immediately — returning session boots in < 50ms!
+          if (mounted) setLoading(false);
+
+          // Bring up the Supabase-only data layer in background
+          initDataLayer().catch((e) => {
+            console.warn('[dataLayer] background init skipped:', (e as Error).message);
+          });
+        } else {
+          // Fresh device / logged out: initialize data layer before unblocking UI
+          try {
+            await initDataLayer();
+          } catch (e) {
+            console.warn('[dataLayer] init skipped:', (e as Error).message);
+          }
+          if (mounted) setLoading(false);
         }
       } catch (err) {
         console.error('Local auth initialization error:', err);
-      } finally {
         if (mounted) setLoading(false);
       }
     }

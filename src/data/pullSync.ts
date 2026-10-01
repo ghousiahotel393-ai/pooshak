@@ -116,7 +116,11 @@ async function pullTable(table: SyncedTable): Promise<number> {
     from += PAGE;
   }
 
-  if (maxTs && maxTs !== cursor) await setCursor(table, maxTs);
+  if (maxTs && maxTs !== cursor) {
+    await setCursor(table, maxTs);
+  } else if (!cursor) {
+    await setCursor(table, new Date(0).toISOString());
+  }
   return pulled;
 }
 
@@ -139,11 +143,23 @@ export async function pullAll(): Promise<Record<string, number>> {
   return result;
 }
 
-/** True when the local mirror has never been bootstrapped (no cursors yet). */
+/** True when the local mirror has never been bootstrapped (no cursors yet and no local data). */
 export async function needsBootstrap(): Promise<boolean> {
   await ensureCursorTable();
   const row = await localQueryOne<{ n: number }>(`SELECT COUNT(*) AS n FROM sync_pull_cursor`);
-  return (row?.n ?? 0) === 0;
+  if ((row?.n ?? 0) > 0) return false;
+
+  // If local mirror already has users or products, we do NOT need a blocking bootstrap pull
+  try {
+    const hasUsers = await localQueryOne<{ n: number }>(`SELECT COUNT(*) AS n FROM staff_users`);
+    if ((hasUsers?.n ?? 0) > 0) return false;
+    const hasProducts = await localQueryOne<{ n: number }>(`SELECT COUNT(*) AS n FROM products`);
+    if ((hasProducts?.n ?? 0) > 0) return false;
+  } catch {
+    // Tables might not exist yet
+  }
+
+  return true;
 }
 
 /** Drop all pull cursors and re-pull every table from scratch (recovery from drift). Local

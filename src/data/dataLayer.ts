@@ -74,7 +74,7 @@ export async function initDataLayer(): Promise<InitResult> {
     // FRESH device: the local mirror is empty, so we must pull at least once before the UI has
     // anything to show. Time-box it so a slow/half-connected network can't hang first boot forever.
     try {
-      const INITIAL_PULL_TIMEOUT_MS = 8000;
+      const INITIAL_PULL_TIMEOUT_MS = 3500;
       pulled = await Promise.race([
         pullAll(),
         new Promise<Record<string, number>>((_, reject) =>

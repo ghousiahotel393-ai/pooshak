@@ -78,12 +78,10 @@ export function buildBarcodePrintHtml({
   <title>Barcodes_${Date.now()}</title>
   <style>
     ${pageStyle}
-    * {
+    *, *::before, *::after {
       box-sizing: border-box !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
-      margin: 0;
-      padding: 0;
     }
     html, body {
       margin: 0 !important;
@@ -132,8 +130,8 @@ export function buildBarcodePrintHtml({
       margin: 0 !important;
       padding: ${geo.marginMm}mm !important;
       display: grid !important;
-      grid-template-columns: repeat(${a4Columns}, 1fr) !important;
-      grid-template-rows: repeat(${a4Rows}, 1fr) !important;
+      grid-template-columns: repeat(${a4Columns}, minmax(0, 1fr)) !important;
+      grid-template-rows: repeat(${a4Rows}, minmax(0, 1fr)) !important;
       align-content: stretch !important;
       gap: ${gapYmm}mm ${gapXmm}mm !important;
       box-sizing: border-box !important;
@@ -177,7 +175,7 @@ export async function executeBarcodePrint(html: string, paperSize: string): Prom
     }
 
     // 2. Browser Environment: Invisible Iframe (Direct & Reliable)
-    // Avoids popups completely, prevents background orphaned windows, and never freezes parent scroll.
+    // Sized to real paper geometry so layout engine calculates media queries accurately.
     try {
         const oldIframe = document.getElementById('pos-barcode-print-frame');
         if (oldIframe && oldIframe.parentNode) {
@@ -187,7 +185,7 @@ export async function executeBarcodePrint(html: string, paperSize: string): Prom
         const iframe = document.createElement('iframe');
         iframe.id = 'pos-barcode-print-frame';
         iframe.setAttribute('title', 'Barcode Print');
-        iframe.style.cssText = 'position:fixed; top:-9999px; left:-9999px; width:0; height:0; border:0; opacity:0; pointer-events:none; z-index:-1;';
+        iframe.style.cssText = 'position:fixed; top:0; left:-10000px; width:210mm; height:297mm; border:0; opacity:0; pointer-events:none; z-index:-9999;';
         document.body.appendChild(iframe);
 
         const doc = iframe.contentWindow?.document;
@@ -211,7 +209,7 @@ export async function executeBarcodePrint(html: string, paperSize: string): Prom
                 }
             };
 
-            setTimeout(doPrint, 200);
+            setTimeout(doPrint, 250);
             return;
         }
     } catch (err) {
