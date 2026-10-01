@@ -163,11 +163,10 @@ export function buildBarcodePrintHtml({
  */
 export async function executeBarcodePrint(html: string, paperSize: string): Promise<void> {
     // 1. Electron Desktop App
-    // @ts-ignore
-    if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.isElectron) {
+    const electronAPI = typeof window !== 'undefined' ? (window as any).electronAPI : undefined;
+    if (electronAPI && electronAPI.isElectron) {
         try {
-            // @ts-ignore
-            await window.electronAPI.printHtml(html, { silent: false, isA4: paperSize === 'A4' });
+            await electronAPI.printHtml(html, { silent: false, isA4: paperSize === 'A4' });
             return;
         } catch (err) {
             console.error('[BarcodePrint] Electron print error:', err);

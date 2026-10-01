@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { User } from '../types';
 import { sonner } from '../lib/sonner';
 import { initDb } from '../lib/db';
-import { initDataLayer, pullNow } from '../data';
+import { initDataLayer } from '../data';
 import { loginWithPin } from '../lib/auth/localAuthService';
 import { useUsersStore } from '../stores/usersStore';
 

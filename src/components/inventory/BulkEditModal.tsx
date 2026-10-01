@@ -19,7 +19,6 @@ interface BulkEditModalProps {
 }
 
 export function BulkEditModal({ isOpen, onClose, selectedIds, categories, suppliers }: BulkEditModalProps) {
-  const appProducts = useProductsStore(s => s.products);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
 

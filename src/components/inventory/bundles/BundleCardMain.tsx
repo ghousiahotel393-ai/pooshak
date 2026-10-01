@@ -48,7 +48,7 @@ export function BundleCard({
   itemCount = (bundle.items || []).reduce((s, bi) => s + (bi.quantity || 1), 0);
   productImages = (bundle.items || [])
     .map(bi => ({ bi, product: products.find(p => p.id === bi.productId) }))
-    .filter((x): x is { bi: typeof bi; product: NonNullable<typeof x.product> } => !!x.product);
+    .filter((x): x is { bi: any; product: any } => !!x.product);
 
   const discAmt = bundle.discountType === 'percentage'
     ? (totalPrice * bundle.discountValue) / 100

@@ -22,6 +22,7 @@ import {
   computeActiveCustomers,
   computeTotalPurchases,
 } from './customerManagerUtils';
+import { getEffectiveTotal } from '../reports/useReportsData';
 
 export function CustomerManager() {
   const navigate = useNavigate();

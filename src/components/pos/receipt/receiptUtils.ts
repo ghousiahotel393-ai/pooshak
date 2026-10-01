@@ -15,7 +15,7 @@ export function buildPrintHtml(
     settings: any;
   }
 ): string {
-  const { is58mm, isA4, pageSizeCSS, fontFamily, settings } = opts;
+  const { is58mm, isA4, pageSizeCSS: _pageSizeCSS, fontFamily, settings } = opts;
   const thermalWidth = is58mm ? '48mm' : '72mm';
   const finalWidth = isA4 ? '100%' : thermalWidth;
 
