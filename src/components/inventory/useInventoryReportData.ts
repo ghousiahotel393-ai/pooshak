@@ -112,7 +112,52 @@ export function useInventoryReportData({
       kpiByProduct.set(h.productId, cur);
     }
 
-    const stats = productsToProcess.map(product => {
+    // Pre-filter sales ONCE outside the product loop (O(sales) instead of O(products × sales))
+  const salesSource = sales || [];
+  const effectiveEndDate = new Date(endDate);
+  if (effectiveEndDate.getHours() === 0 && effectiveEndDate.getMinutes() === 0) {
+    effectiveEndDate.setHours(23, 59, 59, 999);
+  }
+  const effectiveStore = (globalStore || 'all').toLowerCase();
+
+  const filteredSales = salesSource.filter(s => {
+    const isOfficial = !['draft', 'pending', 'refunded', 'cancelled'].includes(s.status?.toLowerCase() || '');
+
+    const saleDate = new Date(s.timestamp);
+    if (effectiveEndDate.getHours() === 0 && effectiveEndDate.getMinutes() === 0) {
+      // already handled above
+    }
+    const inDateRange = saleDate >= startDate && saleDate <= effectiveEndDate;
+
+    const storeMatch = effectiveStore === 'all' || (s.saleType || 'retail').toLowerCase() === effectiveStore;
+
+    return isOfficial && inDateRange && storeMatch;
+  });
+
+  // Build productId → recentSales Map ONCE (O(filteredSales) instead of O(products × sales))
+  const recentSalesByProduct = new Map<string, Array<{ saleId: string; invoiceNumber: string; timestamp: string; quantity: number; revenue: number; cogs: number; customerName: string | undefined; selectedVariant?: string; selectedModifiers?: any[]; serialNumber?: string }>>();
+  for (const sale of filteredSales) {
+    for (const item of sale.items || []) {
+      const itemProdId = item.product?.id || (item as any).productId;
+      if (!itemProdId) continue;
+      const arr = recentSalesByProduct.get(itemProdId) || [];
+      arr.push({
+        saleId: sale.id,
+        invoiceNumber: sale.invoiceNumber,
+        timestamp: sale.timestamp,
+        quantity: netItemQty(item),
+        revenue: getItemRevenue(item, sale),
+        cogs: getItemCOGS(item).cost,
+        customerName: sale.customerName,
+        selectedVariant: item.selectedVariant,
+        selectedModifiers: item.selectedModifiers,
+        serialNumber: item.serialNumber
+      });
+      recentSalesByProduct.set(itemProdId, arr);
+    }
+  }
+
+  const stats = productsToProcess.map(product => {
       const isInfinite = product.trackInventory === false || product.stock >= 990000;
 
       const stockValue = isInfinite ? 0 : (product.stock * (product.cost || 0));
@@ -126,26 +171,6 @@ export function useInventoryReportData({
         isInfinite ? 'Infinity Mode' : (product.stock <= 0 ? 'Out of Stock' :
           product.stock <= (product.minStock || 5) ? 'Low Stock' : 'In Stock');
 
-      const salesSource = sales || [];
-      const filteredSales = salesSource.filter(s => {
-        const sStatus = (s.status || 'completed').toLowerCase();
-        const isOfficial = !['draft', 'pending', 'refunded', 'cancelled'].includes(sStatus);
-
-        const saleDate = new Date(s.timestamp);
-        const effectiveEndDate = new Date(endDate);
-        if (effectiveEndDate.getHours() === 0 && effectiveEndDate.getMinutes() === 0) {
-          effectiveEndDate.setHours(23, 59, 59, 999);
-        }
-
-        const inDateRange = saleDate >= startDate && saleDate <= effectiveEndDate;
-
-        const effectiveStore = (globalStore || 'all').toLowerCase();
-        const saleTypeVal = (s.saleType || 'retail').toLowerCase();
-        const storeMatch = effectiveStore === 'all' || saleTypeVal === effectiveStore;
-
-        return isOfficial && inDateRange && storeMatch;
-      });
-
       const kpi = kpiByProduct.get(product.id) || { sold: 0, revenue: 0, cogs: 0 };
       const soldQty = kpi.sold;
       const revenue = kpi.revenue;
@@ -153,25 +178,7 @@ export function useInventoryReportData({
 
       const grossProfit = revenue - cogs;
 
-      const recentSales = filteredSales.flatMap(sale => {
-        const productItems = (sale.items || []).filter(item => {
-          const itemProdId = item.product?.id || (item as any).productId;
-          return itemProdId === product.id;
-        });
-
-        return productItems.map(item => ({
-          saleId: sale.id,
-          invoiceNumber: sale.invoiceNumber,
-          timestamp: sale.timestamp,
-          quantity: netItemQty(item),
-          revenue: getItemRevenue(item, sale),
-          cogs: getItemCOGS(item).cost,
-          customerName: sale.customerName,
-          selectedVariant: item.selectedVariant,
-          selectedModifiers: item.selectedModifiers,
-          serialNumber: item.serialNumber
-        }));
-      }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      const recentSales = (recentSalesByProduct.get(product.id) || []).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
       return {
         id: product.id,

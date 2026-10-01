@@ -20,7 +20,6 @@ import {
   filterCustomers,
   filterSalesByDate,
   computeActiveCustomers,
-  getCustomerTotalPurchases,
   computeTotalPurchases,
 } from './customerManagerUtils';
 
@@ -123,18 +122,34 @@ export function CustomerManager() {
     filterSalesByDate(appSales, validStartDate, validEndDate, dateFilter, appSettings.country),
     [appSales, validStartDate, validEndDate, dateFilter, appSettings.country]);
 
+  // Precompute customer totals Map: O(sales) once instead of O(customers × sales) per render
+  const customerTotalsMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const source = dateFilter === 'all' ? appSales : filteredSalesByDate;
+    for (const s of source) {
+      if (s.customerId) {
+        map.set(s.customerId, (map.get(s.customerId) || 0) + getEffectiveTotal(s));
+      }
+      // Also match by name as fallback (same logic as getCustomerTotalPurchases)
+      if (s.customerName) {
+        map.set(s.customerName.toLowerCase(), (map.get(s.customerName.toLowerCase()) || 0) + getEffectiveTotal(s));
+      }
+    }
+    return map;
+  }, [appSales, filteredSalesByDate, dateFilter]);
+
   const totalCustomers = appCustomers.length;
 
   const totalPurchases = useMemo(() =>
     computeTotalPurchases(appCustomers, dateFilter, filteredSalesByDate),
     [appCustomers, dateFilter, filteredSalesByDate]);
 
-  const getCustomerTotalPurchasesFn = (customerId: string, defaultTotal: number | undefined) =>
-    getCustomerTotalPurchases(
-      dateFilter === 'all' ? appSales : filteredSalesByDate,
-      customerId,
-      defaultTotal
-    );
+  // Use precomputed Map instead of filtering per row
+  const getCustomerTotalPurchasesFn = (customerId: string, defaultTotal: number | undefined) => {
+    const byId = customerTotalsMap.get(customerId);
+    if (byId !== undefined) return byId;
+    return customerTotalsMap.get(customerId.toLowerCase()) ?? defaultTotal ?? 0;
+  };
 
   const averagePurchase = totalCustomers > 0 ? totalPurchases / totalCustomers : 0;
 
