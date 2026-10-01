@@ -242,25 +242,37 @@ export function BarcodeCard({
 
     if (isThermal) {
         return (
-            <div key={labelId} data-capture-id={labelId}
-                className="label-to-print print:break-after-page shadow-md print:shadow-none bg-white border border-gray-200 dark:border-white/5 print:border-none"
+            <div
+                key={labelId}
+                className="thermal-viewport"
                 style={{
-                    width: `${cellW}px`,
-                    height: `${cellH}px`,
-                    transform: `scale(${previewScale})`,
-                    transformOrigin: 'top center',
-                    marginBottom: `${(cellH * previewScale) - cellH + (12 * previewScale)}px`,
+                    width: `${cellW * previewScale}px`,
+                    height: `${cellH * previewScale}px`,
                     overflow: 'hidden',
-                    marginRight: 'auto',
-                    marginLeft: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px -1px rgba(0, 0, 0, 0.1)',
                     backgroundColor: 'white',
-                    flexShrink: 0
-                }}>
-                {innerContent}
+                    flexShrink: 0,
+                }}
+            >
+                <div
+                    data-capture-id={labelId}
+                    className="label-to-print bg-white"
+                    style={{
+                        width: `${cellW}px`,
+                        height: `${cellH}px`,
+                        transform: `scale(${previewScale})`,
+                        transformOrigin: 'top left',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'white',
+                        flexShrink: 0,
+                    }}
+                >
+                    {innerContent}
+                </div>
             </div>
         );
     }

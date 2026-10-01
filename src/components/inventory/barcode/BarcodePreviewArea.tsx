@@ -73,9 +73,9 @@ export function BarcodePreviewArea({
                     <div ref={componentRef} className="print:bg-transparent flex flex-col items-center">
                         {paperSize === 'A4' ? (
                             pages.map((page, pi) => (
-                                <div key={`pw-${pi}`} className="flex flex-col items-center">
+                                <div key={`pw-${pi}`} className="flex flex-col items-center mb-6">
                                     <div
-                                        className="page-indicator print:hidden flex items-center gap-2 my-2"
+                                        className="page-indicator print:hidden flex items-center gap-2 mb-2"
                                         style={{ width: `${pageWpx * previewScale}px`, maxWidth: 'calc(100vw - 32px)' }}
                                     >
                                         <div className="h-px flex-1 bg-neutral-200 dark:border-white/[0.08]" />
@@ -85,33 +85,45 @@ export function BarcodePreviewArea({
                                         <div className="h-px flex-1 bg-neutral-200 dark:border-white/[0.08]" />
                                     </div>
 
+                                    {/* Page Container: occupies exact scaled dimensions to prevent overlapping */}
                                     <div
-                                        className="print-page bg-white shadow-2xl print:shadow-none"
-                                        data-capture-id={`page-${pi}`}
+                                        className="preview-page-viewport"
                                         style={{
-                                            width: `${pageWidthMm}mm`,
-                                            height: `${pageHeightMm}mm`,
-                                            transform: `scale(${previewScale})`,
-                                            transformOrigin: 'top center',
-                                            marginBottom: `${(pageHpx * previewScale) - pageHpx + 16}px`,
-                                            display: 'grid',
-                                            gridTemplateColumns: `repeat(${a4Columns},1fr)`,
-                                            gridTemplateRows: `repeat(${a4Rows},1fr)`,
-                                            alignContent: 'stretch',
-                                            gap: `${gapYmm}mm ${gapXmm}mm`,
-                                            padding: `${pageMarginMm}mm`,
-                                            boxSizing: 'border-box',
-                                            backgroundColor: 'white',
+                                            width: `${pageWpx * previewScale}px`,
+                                            height: `${pageHpx * previewScale}px`,
                                             overflow: 'hidden',
+                                            boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.12)',
+                                            backgroundColor: 'white',
                                             flexShrink: 0,
                                         }}
                                     >
-                                        {page.map(item => renderCard(item.product, item.id))}
+                                        <div
+                                            className="print-page bg-white"
+                                            data-capture-id={`page-${pi}`}
+                                            style={{
+                                                width: `${pageWidthMm}mm`,
+                                                height: `${pageHeightMm}mm`,
+                                                transform: `scale(${previewScale})`,
+                                                transformOrigin: 'top left',
+                                                display: 'grid',
+                                                gridTemplateColumns: `repeat(${a4Columns},1fr)`,
+                                                gridTemplateRows: `repeat(${a4Rows},1fr)`,
+                                                alignContent: 'stretch',
+                                                gap: `${gapYmm}mm ${gapXmm}mm`,
+                                                padding: `${pageMarginMm}mm`,
+                                                boxSizing: 'border-box',
+                                                backgroundColor: 'white',
+                                                overflow: 'hidden',
+                                                flexShrink: 0,
+                                            }}
+                                        >
+                                            {page.map(item => renderCard(item.product, item.id))}
+                                        </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="flex flex-col items-center pt-3 print:pt-0">
+                            <div className="flex flex-col items-center pt-3 print:pt-0 gap-3">
                                 {allLabels.map(item => renderCard(item.product, item.id))}
                             </div>
                         )}
