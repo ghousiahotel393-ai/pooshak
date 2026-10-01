@@ -65,6 +65,9 @@ export function ReceiptPrint({ sale, onClose }: ReceiptPrintProps) {
               Close
             </Button>
           </div>
+          <div className="hidden" aria-hidden="true">
+            {renderReceiptBody()}
+          </div>
         </div>
       </Modal>
     );

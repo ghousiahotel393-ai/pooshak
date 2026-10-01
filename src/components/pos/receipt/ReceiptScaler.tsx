@@ -19,6 +19,7 @@ export function ReceiptScaler({
   const recalc = () => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.clientWidth - 16;
+    const receiptW = parseInt(paperWidthPx, 10) || 380;
     const minScale = receiptW > 500 ? 0.35 : 0.65;
     const newScale = containerW < receiptW ? Math.max(minScale, containerW / receiptW) : 1;
     setScale(newScale);
