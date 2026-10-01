@@ -120,8 +120,8 @@ export function BarcodeQuantitiesSection({
                 )}
             </div>
 
-            {/* Tile list — flows in the panel scroll (no inner scroll box), first tile fully visible */}
-            <div className="space-y-1.5 mt-3">
+            {/* Tile list — scrollable box so products don't stretch the whole sidebar */}
+            <div className="space-y-1.5 mt-3 max-h-64 sm:max-h-72 overflow-y-auto pr-1 overscroll-contain">
                 {localProducts.map(p => {
                     const unprinted = unprintedMap[p.id] || 0;
                     const qty = quantities[p.id] !== undefined ? quantities[p.id] : 0;
