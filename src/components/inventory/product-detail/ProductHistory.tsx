@@ -30,7 +30,7 @@ export function ProductHistory({ d }: { d: ProductDetailController }) {
       </div>
 
       <div className="overflow-hidden">
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-neutral-100/80 dark:bg-white/[0.04] border-b border-neutral-200 dark:border-white/[0.08]">
@@ -85,7 +85,7 @@ export function ProductHistory({ d }: { d: ProductDetailController }) {
           </table>
         </div>
 
-        <div className="md:hidden divide-y divide-neutral-100 dark:divide-white/5">
+        <div className="lg:hidden divide-y divide-neutral-100 dark:divide-white/5">
           {movementHistory.length === 0 ? (
             <EmptyState compact icon={<History className="h-full w-full" />} title={"No records found"} className="!py-20" />
           ) : paginatedHistory.map((h) => (

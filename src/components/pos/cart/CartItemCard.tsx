@@ -207,7 +207,7 @@ export function CartItemCard({
           </span>
         ) : (
           <div className="flex items-center self-center bg-gray-150/70 dark:bg-white/5 rounded-full p-0.5 shrink-0 transition-all">
-            <button onClick={() => onUpdateQuantity(index, item.quantity - 1)} className="w-5.5 h-5.5 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-red-500 active:scale-90 transition-all shrink-0">
+            <button onClick={() => onUpdateQuantity(index, item.quantity - 1)} className="w-11 h-11 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-red-500 active:scale-90 transition-all shrink-0" aria-label="Decrease quantity">
               <MinusIcon size="xs" />
             </button>
             <input
@@ -217,7 +217,7 @@ export function CartItemCard({
               style={{ width: `${Math.max(3, String(item.quantity || '').length + 1.2)}ch` }}
               className={cn('min-w-[28px] px-1 bg-transparent text-center text-[12px] font-bold font-mono focus:outline-none no-spinners transition-all', item.quantity < 0 ? 'text-red-500' : 'text-neutral-900 dark:text-white')}
             />
-            <button onClick={() => onUpdateQuantity(index, item.quantity + 1)} className="w-5.5 h-5.5 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-primary active:scale-90 transition-all shrink-0">
+            <button onClick={() => onUpdateQuantity(index, item.quantity + 1)} className="w-11 h-11 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-primary active:scale-90 transition-all shrink-0" aria-label="Increase quantity">
               <PlusIcon size="xs" />
             </button>
           </div>
@@ -240,10 +240,10 @@ export function CartItemCard({
                 <button
                   onClick={() => setShowDiscountInput(!showDiscountInput)}
                   className={cn(
-                    'w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-[11px] font-bold leading-none rounded-full transition-colors',
+                    'w-11 h-11 flex items-center justify-center text-[11px] font-bold leading-none rounded-full transition-colors',
                     item.discount > 0 ? 'text-primary bg-emerald-500/10' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/10 hover:text-primary'
                   )}
-                  title="Discount"
+                  aria-label="Toggle discount"
                 >
                   %
                 </button>
@@ -251,8 +251,8 @@ export function CartItemCard({
               {profile?.canGiveDiscount && item.discount > 0 && (
                 <button
                   onClick={clearItemDiscount}
-                  className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-primary hover:text-red-500 hover:bg-rose-500/10 rounded-full transition-colors"
-                  title="Clear Item Discount"
+                  className="w-11 h-11 flex items-center justify-center text-primary hover:text-red-500 hover:bg-rose-500/10 rounded-full transition-colors"
+                  aria-label="Clear item discount"
                 >
                   <CloseIcon size="xs" />
                 </button>
@@ -264,10 +264,10 @@ export function CartItemCard({
                     setIsEditingPrice(!isEditingPrice);
                   }}
                   className={cn(
-                    'w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center rounded-full transition-colors',
+                    'w-11 h-11 flex items-center justify-center rounded-full transition-colors',
                     isEditingPrice ? 'text-primary bg-emerald-500/10' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-primary'
                   )}
-                  title="Edit Price"
+                  aria-label="Edit price"
                 >
                   <EditIcon size="xs" />
                 </button>

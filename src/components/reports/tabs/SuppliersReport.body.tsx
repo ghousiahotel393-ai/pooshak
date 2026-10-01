@@ -122,7 +122,7 @@ export function SuppliersReport({ currency, country }: SuppliersReportProps) {
       {/* Table */}
       <div className="bg-white dark:bg-surface rounded-md border border-neutral-200 dark:border-white/[0.08] overflow-hidden shadow-none min-h-[calc(100vh-360px)] flex flex-col justify-between">
         {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto flex-1">
+        <div className="hidden lg:block overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse text-[13px]">
             <thead>
               <tr className="bg-neutral-50 dark:bg-white/[0.02] border-b border-neutral-200 dark:border-white/[0.06] h-8">
@@ -215,7 +215,7 @@ export function SuppliersReport({ currency, country }: SuppliersReportProps) {
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden divide-y divide-neutral-100 dark:divide-white/[0.04] flex-1">
+        <div className="lg:hidden divide-y divide-neutral-100 dark:divide-white/[0.04] flex-1">
           {pageItems.length === 0 ? (
             <div className="p-8 text-center text-neutral-500 text-[12px]">No suppliers found</div>
           ) : (

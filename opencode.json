@@ -4,7 +4,7 @@
   "provider": {
     "anthropic": {
       "options": {
-        "apiKey": "sk-bKR1DZ9dahQngPRMEJKGLwgsOR5fqwlVM93uTsxBWie8Kwbd",
+        "apiKey": "sk-KGrFaiGN20WiTyfpeLWCaaQmiOHWBQCLqnATlV1A4QnR0m1S",
         "baseURL": "https://api.justwoker.icu/v1"
       }
     }

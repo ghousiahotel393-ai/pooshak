@@ -113,7 +113,7 @@ export function CategoriesList({ categories, appProducts, appSettings, setSelect
         </div>
 
         {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto">
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="h-8 bg-neutral-50/50 dark:bg-white/[0.02] border-b border-neutral-200 dark:border-white/[0.08]">
@@ -192,7 +192,7 @@ export function CategoriesList({ categories, appProducts, appSettings, setSelect
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden divide-y divide-neutral-100 dark:divide-white/[0.04]">
+        <div className="lg:hidden divide-y divide-neutral-100 dark:divide-white/[0.04]">
           {filteredCategories.map(cat => {
             const productsInCat = appProducts.filter(p => p.category === cat);
             const stockInCat = productsInCat.reduce((sum, p) => sum + (p.trackInventory === false || p.stock >= 990000 ? 0 : (p.stock || 0)), 0);

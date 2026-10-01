@@ -38,7 +38,7 @@ export function TransactionList({
 
   return (
     <>
-      <div className="hidden md:block overflow-x-auto scrollbar-hide flex-1">
+      <div className="hidden lg:block overflow-x-auto scrollbar-hide flex-1">
         <table className="w-full text-left border-collapse text-[13px]">
           <thead>
             <tr className="h-8 bg-neutral-50/50 dark:bg-white/[0.02] border-b border-neutral-200 dark:border-white/[0.08]">
@@ -115,7 +115,7 @@ export function TransactionList({
         </table>
       </div>
 
-      <div className="md:hidden divide-y divide-neutral-100 dark:divide-white/[0.04] flex-1">
+      <div className="lg:hidden divide-y divide-neutral-100 dark:divide-white/[0.04] flex-1">
         {loading ? (
           <div className="p-8 text-center text-neutral-500 font-mono text-[12px] italic">{'Loading transactions...'}</div>
         ) : filteredLedger.length === 0 ? (
