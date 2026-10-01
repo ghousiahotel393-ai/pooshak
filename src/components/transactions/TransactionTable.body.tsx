@@ -45,6 +45,7 @@ export function TransactionTable({
   onPageChange,
   pageSize,
   onPageSizeChange,
+  isLoading = false,
 }: TransactionTableProps) {
   const navigate = useNavigate();
   const { profile } = useAuth();
